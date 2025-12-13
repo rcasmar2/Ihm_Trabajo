@@ -6,6 +6,7 @@
 #include "controllers/sessioncontroller.h"
 #include "controllers/chartcontroller.h"
 #include "widgets/chartwidget.h"
+#include "widgets/strokesettingspopup.h"
 #include "utils/charttypes.h"
 #include "navigation.h"
 
@@ -28,6 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     , m_angleLabel(nullptr)
     , m_toolLabel(nullptr)
     , m_toolGroup(nullptr)
+    , m_strokePopup(nullptr)
 {
     ui->setupUi(this);
 
@@ -77,6 +79,17 @@ void MainWindow::setupToolbar() {
 
     // Seleccionar Pan por defecto
     ui->toolPan->setChecked(true);
+    
+    // Crear popup de configuración de trazo
+    m_strokePopup = new StrokeSettingsPopup(this);
+    m_strokePopup->setColor(m_chartWidget->controller()->strokeColor());
+    m_strokePopup->setStrokeWidth(m_chartWidget->controller()->strokeWidth());
+    
+    // Conectar cambios del popup al controller
+    connect(m_strokePopup, &StrokeSettingsPopup::colorChanged,
+            this, &MainWindow::onStrokeColorChanged);
+    connect(m_strokePopup, &StrokeSettingsPopup::strokeWidthChanged,
+            this, &MainWindow::onStrokeWidthChanged);
 }
 
 void MainWindow::setupStatusBar() {
@@ -309,22 +322,58 @@ void MainWindow::onToolChanged(int toolMode) {
     ToolMode mode = static_cast<ToolMode>(toolMode);
     
     QString toolName;
+    QWidget *anchor = nullptr;
+    bool isDrawingTool = false;
+    
     switch (mode) {
-    case ToolMode::Pan: toolName = "🔧 Mano"; break;
-    case ToolMode::Point: toolName = "🔧 Punto"; break;
-    case ToolMode::Line: toolName = "🔧 Línea"; break;
-    case ToolMode::Arc: toolName = "🔧 Arco"; break;
-    case ToolMode::Text: toolName = "🔧 Texto"; break;
-    case ToolMode::Eraser: toolName = "🔧 Borrador"; break;
-    case ToolMode::Protractor: toolName = "🔧 Transportador"; break;
-    case ToolMode::Ruler: toolName = "🔧 Regla"; break;
-    default: toolName = "🔧 Seleccionar"; break;
+    case ToolMode::Pan: 
+        toolName = "🔧 Mano"; 
+        break;
+    case ToolMode::Point: 
+        toolName = "🔧 Punto"; 
+        anchor = ui->toolPoint;
+        isDrawingTool = true;
+        break;
+    case ToolMode::Line: 
+        toolName = "🔧 Línea"; 
+        anchor = ui->toolLine;
+        isDrawingTool = true;
+        break;
+    case ToolMode::Arc: 
+        toolName = "🔧 Arco"; 
+        anchor = ui->toolArc;
+        isDrawingTool = true;
+        break;
+    case ToolMode::Text: 
+        toolName = "🔧 Texto"; 
+        anchor = ui->toolText;
+        isDrawingTool = true;
+        break;
+    case ToolMode::Eraser: 
+        toolName = "🔧 Borrador"; 
+        break;
+    case ToolMode::Protractor: 
+        toolName = "🔧 Transportador"; 
+        break;
+    case ToolMode::Ruler: 
+        toolName = "🔧 Regla"; 
+        break;
+    default: 
+        toolName = "🔧 Seleccionar"; 
+        break;
     }
     
     m_toolLabel->setText(toolName);
     
     // Mostrar/ocultar ángulo según herramienta
     m_angleLabel->setVisible(mode == ToolMode::Protractor);
+    
+    // Mostrar popup de color/grosor para herramientas de dibujo
+    if (isDrawingTool && anchor) {
+        showStrokeSettings(anchor);
+    } else if (m_strokePopup) {
+        m_strokePopup->hide();
+    }
     
     updateToolButtonStates();
 }
@@ -400,3 +449,20 @@ void MainWindow::onAbout() {
         "<p>Práctica de Interacción Humano-Máquina</p>"
     );
 }
+
+// === STROKE SETTINGS ===
+
+void MainWindow::onStrokeColorChanged(const QColor &color) {
+    m_chartWidget->controller()->setStrokeColor(color);
+}
+
+void MainWindow::onStrokeWidthChanged(int width) {
+    m_chartWidget->controller()->setStrokeWidth(width);
+}
+
+void MainWindow::showStrokeSettings(QWidget *anchor) {
+    if (m_strokePopup) {
+        m_strokePopup->showNear(anchor);
+    }
+}
+

@@ -1,4 +1,6 @@
 #include "chartcontroller.h"
+#include "draggableprotractor.h"
+#include "draggableruler.h"
 #include <QGraphicsEllipseItem>
 #include <QGraphicsLineItem>
 #include <QGraphicsTextItem>
@@ -8,7 +10,6 @@
 #include <QPainterPath>
 #include <QtMath>
 #include <QInputDialog>
-#include <QPainter>
 
 // =============================================================================
 // ChartController Implementation
@@ -79,8 +80,17 @@ void ChartController::setTool(ToolMode mode) {
         }
         m_isDragging = false;
 
+        // Gestionar visibilidad de herramientas overlay
         if (mode == ToolMode::Protractor) {
             showProtractor(true);
+            showRuler(false);
+        } else if (mode == ToolMode::Ruler) {
+            showRuler(true);
+            showProtractor(false);
+        } else {
+            // Ocultar ambas herramientas overlay al cambiar a otra herramienta
+            showProtractor(false);
+            showRuler(false);
         }
 
         m_currentTool = mode;
@@ -164,6 +174,10 @@ void ChartController::handleWheelDelta(int delta) {
         // Rotar transportador con la rueda
         double angleDelta = delta / 12.0;
         rotateProtractor(angleDelta);
+    } else if (m_currentTool == ToolMode::Ruler && m_ruler) {
+        // Rotar regla con la rueda
+        double angleDelta = delta / 12.0;
+        rotateRuler(angleDelta);
     } else {
         // Zoom normal
         if (delta > 0) {
@@ -179,7 +193,8 @@ void ChartController::handleWheelDelta(int delta) {
 void ChartController::clearAllDrawings() {
     QList<QGraphicsItem*> items = m_scene->items();
     for (QGraphicsItem *item : items) {
-        if (item != m_chartImage && item != m_protractor) {
+        // Excluir la carta de fondo y las herramientas overlay
+        if (item != m_chartImage && item != m_protractor && item != m_ruler) {
             m_scene->removeItem(item);
             delete item;
         }
@@ -190,7 +205,7 @@ void ChartController::clearAllDrawings() {
 void ChartController::deleteSelectedItems() {
     QList<QGraphicsItem*> selected = m_scene->selectedItems();
     for (QGraphicsItem *item : selected) {
-        if (item != m_chartImage && item != m_protractor) {
+        if (item != m_chartImage && item != m_protractor && item != m_ruler) {
             m_scene->removeItem(item);
             delete item;
         }
@@ -292,64 +307,26 @@ void ChartController::setStrokeWidth(int width) {
     m_strokeWidth = qBound(1, width, 20);
 }
 
-// === TRANSPORTADOR ===
+// === HERRAMIENTAS OVERLAY (SVG) ===
 
 void ChartController::showProtractor(bool visible) {
     if (visible && !m_protractor) {
-        // Crear imagen del transportador
-        QImage img(300, 160, QImage::Format_ARGB32);
-        img.fill(Qt::transparent);
-        QPainter painter(&img);
-        painter.setRenderHint(QPainter::Antialiasing);
+        // Crear transportador SVG
+        m_protractor = new DraggableProtractor();
+        m_scene->addItem(m_protractor);
         
-        // Semicírculo
-        QPen pen(QColor("#27ae60"), 3);
-        painter.setPen(pen);
-        painter.drawArc(10, 10, 280, 280, 0, 180 * 16);
-        
-        // Marcas de grados
-        pen.setWidth(1);
-        painter.setPen(pen);
-        QFont font("Arial", 8);
-        painter.setFont(font);
-        
-        for (int angle = 0; angle <= 180; angle += 10) {
-            double rad = qDegreesToRadians((double)angle);
-            double x1 = 150 + 130 * qCos(rad);
-            double y1 = 150 - 130 * qSin(rad);
-            double x2 = 150 + 140 * qCos(rad);
-            double y2 = 150 - 140 * qSin(rad);
-            painter.drawLine(QPointF(x1, y1), QPointF(x2, y2));
-            
-            if (angle % 30 == 0) {
-                double xt = 150 + 115 * qCos(rad) - 10;
-                double yt = 150 - 115 * qSin(rad) + 5;
-                painter.drawText(QPointF(xt, yt), QString::number(angle));
-            }
-        }
-        
-        // Línea base
-        pen.setWidth(2);
-        painter.setPen(pen);
-        painter.drawLine(10, 150, 290, 150);
-        
-        // Centro
-        painter.setBrush(QColor("#e94560"));
-        painter.drawEllipse(QPointF(150, 150), 5, 5);
-        
-        m_protractor = m_scene->addPixmap(QPixmap::fromImage(img));
-        m_protractor->setTransformOriginPoint(150, 150);
-        m_protractor->setZValue(1000);
-        m_protractor->setOpacity(0.9);
-        m_protractor->setFlag(QGraphicsItem::ItemIsMovable);
-        m_protractor->setFlag(QGraphicsItem::ItemIsSelectable);
-        
+        // Posicionar en el centro de la carta
         QRectF sceneRect = m_scene->sceneRect();
+        QRectF bounds = m_protractor->boundingRect();
         m_protractor->setPos(
-            sceneRect.center().x() - 150,
-            sceneRect.center().y() - 80
+            sceneRect.center().x() - bounds.width() / 2,
+            sceneRect.center().y() - bounds.height() / 2
         );
         
+        // Conectar señal de ángulo
+        connect(m_protractor, &DraggableProtractor::angleChanged,
+                this, &ChartController::angleChanged);
+                
     } else if (!visible && m_protractor) {
         m_scene->removeItem(m_protractor);
         delete m_protractor;
@@ -357,13 +334,40 @@ void ChartController::showProtractor(bool visible) {
     }
 }
 
+void ChartController::showRuler(bool visible) {
+    if (visible && !m_ruler) {
+        // Crear regla SVG
+        m_ruler = new DraggableRuler();
+        m_scene->addItem(m_ruler);
+        
+        // Posicionar en el centro de la carta
+        QRectF sceneRect = m_scene->sceneRect();
+        QRectF bounds = m_ruler->boundingRect();
+        m_ruler->setPos(
+            sceneRect.center().x() - bounds.width() / 2,
+            sceneRect.center().y() - bounds.height() / 2
+        );
+        
+        // Conectar señal de ángulo
+        connect(m_ruler, &DraggableRuler::angleChanged,
+                this, &ChartController::angleChanged);
+                
+    } else if (!visible && m_ruler) {
+        m_scene->removeItem(m_ruler);
+        delete m_ruler;
+        m_ruler = nullptr;
+    }
+}
+
 void ChartController::rotateProtractor(double angleDelta) {
     if (m_protractor) {
-        m_protractorAngle += angleDelta;
-        while (m_protractorAngle < 0) m_protractorAngle += 360;
-        while (m_protractorAngle >= 360) m_protractorAngle -= 360;
-        m_protractor->setRotation(m_protractorAngle);
-        emit angleChanged(m_protractorAngle);
+        m_protractor->rotateBy(angleDelta);
+    }
+}
+
+void ChartController::rotateRuler(double angleDelta) {
+    if (m_ruler) {
+        m_ruler->rotateBy(angleDelta);
     }
 }
 
@@ -371,8 +375,16 @@ bool ChartController::isProtractorVisible() const {
     return m_protractor != nullptr;
 }
 
+bool ChartController::isRulerVisible() const {
+    return m_ruler != nullptr;
+}
+
 double ChartController::protractorAngle() const {
-    return m_protractorAngle;
+    return m_protractor ? m_protractor->angle() : 0.0;
+}
+
+double ChartController::rulerAngle() const {
+    return m_ruler ? m_ruler->angle() : 0.0;
 }
 
 // === MÉTODOS PRIVADOS ===
@@ -507,7 +519,8 @@ void ChartController::createText(const QPointF &pos) {
 void ChartController::eraseItemAt(const QPointF &pos) {
     QList<QGraphicsItem*> items = m_scene->items(pos);
     for (QGraphicsItem *item : items) {
-        if (item != m_chartImage && item != m_protractor) {
+        // Excluir la carta de fondo y las herramientas overlay
+        if (item != m_chartImage && item != m_protractor && item != m_ruler) {
             m_scene->removeItem(item);
             delete item;
             break;

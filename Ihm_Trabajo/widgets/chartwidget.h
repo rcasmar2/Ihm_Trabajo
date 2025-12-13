@@ -39,8 +39,12 @@ private:
     // Para panning
     bool m_isPanning = false;
     QPoint m_lastPanPoint;
+    
+    // Última posición del ratón para zoom centrado
+    QPoint m_lastMousePos;
+    double m_currentZoom = 1.0;
 
-    void applyZoom(double factor);
+    void applyZoomAtPoint(double factor, const QPoint &viewPos);
     void centerOnChart();
 
 private slots:

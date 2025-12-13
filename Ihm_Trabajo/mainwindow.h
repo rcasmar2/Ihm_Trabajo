@@ -10,6 +10,7 @@ class ChartWidget;
 class User;
 class QLabel;
 class QButtonGroup;
+class StrokeSettingsPopup;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -83,6 +84,11 @@ private slots:
     void onShowProfile();
     void onShowManual();
     void onAbout();
+    
+    // Stroke Settings
+    void onStrokeColorChanged(const QColor &color);
+    void onStrokeWidthChanged(int width);
+    void showStrokeSettings(QWidget *anchor);
 
 private:
     Ui::MainWindow *ui;
@@ -101,6 +107,7 @@ private:
     QLabel *m_angleLabel;
     QLabel *m_toolLabel;
     QButtonGroup *m_toolGroup;
+    StrokeSettingsPopup *m_strokePopup;
 
     void setupControllers();
     void setupChartWidget();

@@ -10,6 +10,10 @@
 #include <QColor>
 #include "charttypes.h"
 
+// Forward declarations for SVG overlay tools
+class DraggableProtractor;
+class DraggableRuler;
+
 /**
  * ChartController - Controlador principal de la carta náutica
  * 
@@ -64,11 +68,15 @@ public:
     void setCalibrationPoints(const QPointF &pixel1, const GeoCoord &coord1,
                                const QPointF &pixel2, const GeoCoord &coord2);
 
-    // === TRANSPORTADOR ===
+    // === HERRAMIENTAS OVERLAY (SVG) ===
     void showProtractor(bool visible);
+    void showRuler(bool visible);
     void rotateProtractor(double angleDelta);
+    void rotateRuler(double angleDelta);
     bool isProtractorVisible() const;
+    bool isRulerVisible() const;
     double protractorAngle() const;
+    double rulerAngle() const;
 
 signals:
     void toolChanged(ToolMode newTool);
@@ -96,9 +104,9 @@ private:
     GeoCoord m_calCoord1, m_calCoord2;
     bool m_isCalibrated = false;
 
-    // Transportador (simple QGraphicsPixmapItem)
-    QGraphicsPixmapItem *m_protractor = nullptr;
-    double m_protractorAngle = 0.0;
+    // Herramientas Overlay (SVG-based)
+    DraggableProtractor *m_protractor = nullptr;
+    DraggableRuler *m_ruler = nullptr;
 
     // Métodos privados
     void createPoint(const QPointF &pos);
