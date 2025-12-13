@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>resources/carta_nautica.jpg</file>
+        <file>resources/icons/compass_leg.svg</file>
+        <file>resources/icons/ruler.svg</file>
+        <file>resources/icons/transportador.svg</file>
+    </qresource>
+</RCC>

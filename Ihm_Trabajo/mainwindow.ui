@@ -6,25 +6,810 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>1400</width>
+    <height>900</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Patrón de Embarcación de Recreo - Carta Náutica Digital</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <property name="styleSheet">
+   <string>
+    QMainWindow { background-color: #1a1a2e; }
+    QMenuBar { background-color: #16213e; color: #e0e0e0; padding: 5px; }
+    QMenuBar::item:selected { background-color: #0f3460; }
+    QMenu { background-color: #16213e; color: #e0e0e0; }
+    QMenu::item:selected { background-color: #0f3460; }
+   </string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="centralLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="margin">
+     <number>0</number>
+    </property>
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <!-- Página 0: Login -->
+      <widget class="QWidget" name="loginPage">
+       <property name="styleSheet">
+        <string>background-color: #1a1a2e;</string>
+       </property>
+      </widget>
+      <!-- Página 1: Register -->
+      <widget class="QWidget" name="registerPage">
+       <property name="styleSheet">
+        <string>background-color: #1a1a2e;</string>
+       </property>
+      </widget>
+      <!-- Página 2: Main Dashboard -->
+      <widget class="QWidget" name="dashboardPage">
+       <layout class="QHBoxLayout" name="dashboardLayout">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <!-- LEFT: Toolbar lateral -->
+        <item>
+         <widget class="QScrollArea" name="toolbarScrollArea">
+          <property name="minimumSize">
+           <size>
+            <width>80</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>80</width>
+            <height>16777215</height>
+           </size>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <property name="styleSheet">
+           <string>
+            QScrollArea { background-color: #16213e; border: none; }
+            QWidget#toolbarContent { background-color: #16213e; }
+           </string>
+          </property>
+          <widget class="QWidget" name="toolbarContent">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>80</width>
+             <height>800</height>
+            </rect>
+           </property>
+           <layout class="QVBoxLayout" name="toolbarVLayout">
+            <property name="spacing">
+             <number>6</number>
+            </property>
+            <property name="leftMargin">
+             <number>8</number>
+            </property>
+            <property name="topMargin">
+             <number>12</number>
+            </property>
+            <property name="rightMargin">
+             <number>8</number>
+            </property>
+            <property name="bottomMargin">
+             <number>12</number>
+            </property>
+            <!-- Sección: Navegación -->
+            <item>
+             <widget class="QLabel" name="navSectionLabel">
+              <property name="text">
+               <string>Navegar</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="styleSheet">
+               <string>color: #7f8c8d; font-size: 10px; font-weight: bold;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolPan">
+              <property name="text">
+               <string>✋</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="checked">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Mover carta (Pan)</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 22px; 
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #e94560; 
+                 border-color: #ff6b6b;
+                }
+                QPushButton:hover:!checked { 
+                 background-color: #1a4a7a; 
+                }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolZoomIn">
+              <property name="text">
+               <string>🔍+</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Acercar (Zoom In)</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 8px; 
+                 font-size: 14px;
+                } 
+                QPushButton:pressed { background-color: #e94560; }
+                QPushButton:hover { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolZoomOut">
+              <property name="text">
+               <string>🔍-</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Alejar (Zoom Out)</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 8px; 
+                 font-size: 14px;
+                } 
+                QPushButton:pressed { background-color: #e94560; }
+                QPushButton:hover { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <!-- Separador -->
+            <item>
+             <widget class="QFrame" name="separator1">
+              <property name="frameShape">
+               <enum>QFrame::HLine</enum>
+              </property>
+              <property name="styleSheet">
+               <string>background-color: #0f3460; margin: 8px 0;</string>
+              </property>
+             </widget>
+            </item>
+            <!-- Sección: Dibujo -->
+            <item>
+             <widget class="QLabel" name="drawSectionLabel">
+              <property name="text">
+               <string>Dibujar</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="styleSheet">
+               <string>color: #7f8c8d; font-size: 10px; font-weight: bold;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolPoint">
+              <property name="text">
+               <string>📍</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Marcar Punto</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 22px;
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #e94560;
+                 border-color: #ff6b6b;
+                }
+                QPushButton:hover:!checked { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolLine">
+              <property name="text">
+               <string>📐</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Trazar Línea/Rumbo</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 22px;
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #e94560;
+                 border-color: #ff6b6b;
+                }
+                QPushButton:hover:!checked { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolArc">
+              <property name="text">
+               <string>◠</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Dibujar Arco (Compás)</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 28px;
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #e94560;
+                 border-color: #ff6b6b;
+                }
+                QPushButton:hover:!checked { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolText">
+              <property name="text">
+               <string>T</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Añadir Texto</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 20px;
+                 font-weight: bold;
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #e94560;
+                 border-color: #ff6b6b;
+                }
+                QPushButton:hover:!checked { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolEraser">
+              <property name="text">
+               <string>🧽</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Borrar Elemento</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 22px;
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #e94560;
+                 border-color: #ff6b6b;
+                }
+                QPushButton:hover:!checked { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <!-- Separador -->
+            <item>
+             <widget class="QFrame" name="separator2">
+              <property name="frameShape">
+               <enum>QFrame::HLine</enum>
+              </property>
+              <property name="styleSheet">
+               <string>background-color: #0f3460; margin: 8px 0;</string>
+              </property>
+             </widget>
+            </item>
+            <!-- Sección: Medición -->
+            <item>
+             <widget class="QLabel" name="measureSectionLabel">
+              <property name="text">
+               <string>Medir</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+              <property name="styleSheet">
+               <string>color: #7f8c8d; font-size: 10px; font-weight: bold;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolProtractor">
+              <property name="text">
+               <string>🧭</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Transportador de Ángulos</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 22px;
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #27ae60;
+                 border-color: #2ecc71;
+                }
+                QPushButton:hover:!checked { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolRuler">
+              <property name="text">
+               <string>📏</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="checkable">
+               <bool>true</bool>
+              </property>
+              <property name="toolTip">
+               <string>Regla / Medir Distancia</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 22px;
+                 border: 2px solid transparent;
+                } 
+                QPushButton:checked { 
+                 background-color: #27ae60;
+                 border-color: #2ecc71;
+                }
+                QPushButton:hover:!checked { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <!-- Separador -->
+            <item>
+             <widget class="QFrame" name="separator3">
+              <property name="frameShape">
+               <enum>QFrame::HLine</enum>
+              </property>
+              <property name="styleSheet">
+               <string>background-color: #0f3460; margin: 8px 0;</string>
+              </property>
+             </widget>
+            </item>
+            <!-- Acciones -->
+            <item>
+             <widget class="QPushButton" name="toolUndo">
+              <property name="text">
+               <string>↩️</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Deshacer (Ctrl+Z)</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #0f3460; 
+                 color: white; 
+                 border-radius: 8px; 
+                 font-size: 18px;
+                } 
+                QPushButton:pressed { background-color: #e94560; }
+                QPushButton:hover { background-color: #1a4a7a; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="toolClear">
+              <property name="text">
+               <string>🗑️</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>40</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Limpiar Todo</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #c0392b; 
+                 color: white; 
+                 border-radius: 8px; 
+                 font-size: 18px;
+                } 
+                QPushButton:pressed { background-color: #e74c3c; }
+                QPushButton:hover { background-color: #e74c3c; }
+               </string>
+              </property>
+             </widget>
+            </item>
+            <!-- Spacer -->
+            <item>
+             <spacer name="toolbarSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeType">
+               <enum>QSizePolicy::Expanding</enum>
+              </property>
+             </spacer>
+            </item>
+            <!-- Quiz Button -->
+            <item>
+             <widget class="QPushButton" name="toolQuiz">
+              <property name="text">
+               <string>📝</string>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>60</width>
+                <height>50</height>
+               </size>
+              </property>
+              <property name="toolTip">
+               <string>Iniciar Quiz de Navegación</string>
+              </property>
+              <property name="styleSheet">
+               <string>
+                QPushButton { 
+                 background-color: #f39c12; 
+                 color: white; 
+                 border-radius: 10px; 
+                 font-size: 22px;
+                } 
+                QPushButton:pressed { background-color: #e67e22; }
+                QPushButton:hover { background-color: #e67e22; }
+               </string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <!-- CENTER: Carta Náutica -->
+        <item>
+         <widget class="QWidget" name="chartContainer">
+          <property name="styleSheet">
+           <string>background-color: #0a0a14;</string>
+          </property>
+          <layout class="QVBoxLayout" name="chartContainerLayout">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <!-- MenuBar -->
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
-     <height>25</height>
+     <width>1400</width>
+     <height>28</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuArchivo">
+    <property name="title">
+     <string>Archivo</string>
+    </property>
+    <addaction name="actionGuardar"/>
+    <addaction name="separator"/>
+    <addaction name="actionCerrarSesion"/>
+    <addaction name="actionSalir"/>
+   </widget>
+   <widget class="QMenu" name="menuEditar">
+    <property name="title">
+     <string>Editar</string>
+    </property>
+    <addaction name="actionDeshacer"/>
+    <addaction name="actionLimpiar"/>
+   </widget>
+   <widget class="QMenu" name="menuVer">
+    <property name="title">
+     <string>Ver</string>
+    </property>
+    <addaction name="actionZoomIn"/>
+    <addaction name="actionZoomOut"/>
+    <addaction name="actionZoomReset"/>
+    <addaction name="separator"/>
+    <addaction name="actionMostrarCoordenadas"/>
+   </widget>
+   <widget class="QMenu" name="menuUsuario">
+    <property name="title">
+     <string>Usuario</string>
+    </property>
+    <addaction name="actionPerfil"/>
+    <addaction name="actionEstadisticas"/>
+   </widget>
+   <widget class="QMenu" name="menuAyuda">
+    <property name="title">
+     <string>Ayuda</string>
+    </property>
+    <addaction name="actionManual"/>
+    <addaction name="actionAcercaDe"/>
+   </widget>
+   <addaction name="menuArchivo"/>
+   <addaction name="menuEditar"/>
+   <addaction name="menuVer"/>
+   <addaction name="menuUsuario"/>
+   <addaction name="menuAyuda"/>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
+  <!-- StatusBar -->
+  <widget class="QStatusBar" name="statusbar">
+   <property name="styleSheet">
+    <string>
+     QStatusBar { 
+      background-color: #16213e; 
+      color: #e0e0e0; 
+      padding: 5px;
+      font-size: 12px;
+     }
+    </string>
+   </property>
+  </widget>
+  <!-- Actions -->
+  <action name="actionSalir">
+   <property name="text">
+    <string>Salir</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionCerrarSesion">
+   <property name="text">
+    <string>Cerrar Sesión</string>
+   </property>
+  </action>
+  <action name="actionGuardar">
+   <property name="text">
+    <string>Guardar Trabajo</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionDeshacer">
+   <property name="text">
+    <string>Deshacer</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionLimpiar">
+   <property name="text">
+    <string>Limpiar Carta</string>
+   </property>
+  </action>
+  <action name="actionZoomIn">
+   <property name="text">
+    <string>Acercar</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl++</string>
+   </property>
+  </action>
+  <action name="actionZoomOut">
+   <property name="text">
+    <string>Alejar</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="actionZoomReset">
+   <property name="text">
+    <string>Zoom 100%</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+0</string>
+   </property>
+  </action>
+  <action name="actionMostrarCoordenadas">
+   <property name="text">
+    <string>Mostrar Coordenadas</string>
+   </property>
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+  </action>
+  <action name="actionPerfil">
+   <property name="text">
+    <string>Mi Perfil</string>
+   </property>
+  </action>
+  <action name="actionEstadisticas">
+   <property name="text">
+    <string>Estadísticas</string>
+   </property>
+  </action>
+  <action name="actionManual">
+   <property name="text">
+    <string>Manual de Uso</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+  </action>
+  <action name="actionAcercaDe">
+   <property name="text">
+    <string>Acerca de...</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
