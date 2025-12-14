@@ -6,6 +6,9 @@
 #include <QKeyEvent>
 #include <QScrollBar>
 #include <QApplication>
+#include <QFrame>
+#include <QLabel>
+#include <QHBoxLayout>
 
 ChartWidget::ChartWidget(QWidget *parent)
     : QGraphicsView(parent)
@@ -29,33 +32,35 @@ ChartWidget::ChartWidget(QWidget *parent)
     setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     
-    // Estilo oscuro para las scrollbars
+    // Estilo oscuro - el mapa ocupa todo, las barras flotan encima
     setStyleSheet(R"(
         QGraphicsView {
-            background-color: #0a0a14;
+            background-color: #0a0a0a;
             border: none;
         }
         QScrollBar:vertical {
-            background-color: #16213e;
-            width: 12px;
+            background-color: rgba(0, 0, 0, 0.5);
+            width: 10px;
             margin: 0;
+            border-radius: 5px;
         }
         QScrollBar::handle:vertical {
-            background-color: #0f3460;
-            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
             min-height: 30px;
         }
         QScrollBar::handle:vertical:hover {
             background-color: #e94560;
         }
         QScrollBar:horizontal {
-            background-color: #16213e;
-            height: 12px;
+            background-color: rgba(0, 0, 0, 0.5);
+            height: 10px;
             margin: 0;
+            border-radius: 5px;
         }
         QScrollBar::handle:horizontal {
-            background-color: #0f3460;
-            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
             min-width: 30px;
         }
         QScrollBar::handle:horizontal:hover {
@@ -75,6 +80,9 @@ ChartWidget::ChartWidget(QWidget *parent)
     // Conectar señal de zoom
     connect(m_controller, &ChartController::zoomChanged,
             this, &ChartWidget::onZoomChanged);
+    
+    // Crear indicador de herramienta
+    setupToolIndicator();
 }
 
 ChartWidget::~ChartWidget() {
@@ -264,3 +272,88 @@ void ChartWidget::centerOnChart() {
         centerOn(scene()->sceneRect().center());
     }
 }
+
+void ChartWidget::setupToolIndicator() {
+    // Crear el frame del indicador
+    m_toolIndicator = new QFrame(this);
+    m_toolIndicator->setStyleSheet(R"(
+        QFrame {
+            background-color: #0d0d0d;
+            border: none;
+            border-radius: 10px;
+        }
+    )");
+    
+    QHBoxLayout *layout = new QHBoxLayout(m_toolIndicator);
+    layout->setContentsMargins(14, 8, 14, 8);
+    layout->setSpacing(10);
+    
+    // Etiqueta de herramienta (sin emoji)
+    m_toolLabel = new QLabel("Selecciona", m_toolIndicator);
+    m_toolLabel->setStyleSheet("color: #ffffff; font-weight: bold; font-size: 13px; background: transparent;");
+    m_toolLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(m_toolLabel);
+    
+    // --- CONTENEDOR DE PROPIEDADES DE DIBUJO ---
+    QWidget *propsWidget = new QWidget(m_toolIndicator);
+    propsWidget->setObjectName("propsWidget");
+    propsWidget->setStyleSheet("background: transparent;");
+    QHBoxLayout *propsLayout = new QHBoxLayout(propsWidget);
+    propsLayout->setContentsMargins(0, 0, 0, 0);
+    propsLayout->setSpacing(10);
+    
+    // Separador
+    QFrame *sep = new QFrame(propsWidget);
+    sep->setFrameShape(QFrame::VLine);
+    sep->setStyleSheet("background-color: #333333; max-width: 1px; border: none;");
+    propsLayout->addWidget(sep);
+    
+    // Preview de color (sin borde)
+    m_toolColorPreview = new QLabel(propsWidget);
+    m_toolColorPreview->setFixedSize(18, 18);
+    m_toolColorPreview->setStyleSheet("background-color: #e94560; border-radius: 4px;");
+    propsLayout->addWidget(m_toolColorPreview);
+    
+    // Label de grosor
+    m_toolWidthLabel = new QLabel("3px", propsWidget);
+    m_toolWidthLabel->setStyleSheet("color: #888888; font-size: 12px; background: transparent;");
+    propsLayout->addWidget(m_toolWidthLabel);
+    
+    layout->addWidget(propsWidget);
+    
+    // Posicionar el indicador
+    m_toolIndicator->adjustSize();
+    m_toolIndicator->move(15, 15);
+    m_toolIndicator->raise();
+}
+
+void ChartWidget::updateToolIndicator(const QString &toolName, const QColor &color, int width, bool isDrawingTool) {
+    if (!m_toolIndicator) return;
+    
+    // Actualizar nombre
+    if (!toolName.isEmpty()) {
+        m_toolLabel->setVisible(true); // Asegurar visibilidad
+        m_toolLabel->setText(toolName);
+    }
+    
+    // Gestionar visibilidad del panel de propiedades
+    QWidget *props = m_toolIndicator->findChild<QWidget*>("propsWidget");
+    if (props) {
+        props->setVisible(isDrawingTool);
+    }
+    
+    // Actualizar valores si es herramienta de dibujo
+    if (isDrawingTool && props) {
+        m_toolColorPreview->setStyleSheet(QString(
+            "background-color: %1; border-radius: 4px;"
+        ).arg(color.name()));
+        m_toolWidthLabel->setText(QString("%1px").arg(width));
+    }
+    
+    // Ajustar tamaño del layout
+    m_toolIndicator->adjustSize();
+    m_toolIndicator->show();
+    m_toolIndicator->raise();
+    m_toolIndicator->update();
+}
+

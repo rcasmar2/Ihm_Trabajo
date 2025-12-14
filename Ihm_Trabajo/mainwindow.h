@@ -11,6 +11,7 @@ class User;
 class QLabel;
 class QButtonGroup;
 class StrokeSettingsPopup;
+class QFrame;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -105,7 +106,6 @@ private:
     QLabel *m_coordLabel;
     QLabel *m_zoomLabel;
     QLabel *m_angleLabel;
-    QLabel *m_toolLabel;
     QButtonGroup *m_toolGroup;
     StrokeSettingsPopup *m_strokePopup;
 
@@ -119,6 +119,7 @@ private:
     void showDashboard();
     void loadChart();
     void updateToolButtonStates();
+    void updateToolIndicator();
 };
 
 #endif // MAINWINDOW_H

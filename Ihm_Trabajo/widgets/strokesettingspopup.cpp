@@ -11,47 +11,65 @@
 #include <QPalette>
 #include <QGraphicsDropShadowEffect>
 #include <QRegularExpressionValidator>
+#include <QPainterPath>
+#include <QEvent>
+#include <QFontComboBox>
+#include <QComboBox> // NECESARIO
 
 StrokeSettingsPopup::StrokeSettingsPopup(QWidget *parent)
-    : QWidget(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint)
+    : QWidget(parent, Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint)
 {
-    setAttribute(Qt::WA_StyledBackground, true);
-    setAutoFillBackground(true);
-    
-    // Sombra para el popup
-    QGraphicsDropShadowEffect *shadow = new QGraphicsDropShadowEffect(this);
-    shadow->setBlurRadius(20);
-    shadow->setColor(QColor(0, 0, 0, 100));
-    shadow->setOffset(0, 4);
-    setGraphicsEffect(shadow);
+    // Hacer el fondo de la ventana transparente para mostrar esquinas redondeadas
+    setAttribute(Qt::WA_TranslucentBackground);
+    setAttribute(Qt::WA_NoSystemBackground);
     
     setupUI();
 }
 
 void StrokeSettingsPopup::setupUI() {
-    // Estilo del popup - azul marino premium
-    setStyleSheet(R"(
-        StrokeSettingsPopup {
-            background-color: #16213e;
-            border: 1px solid #0f3460;
-            border-radius: 16px;
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(20, 16, 20, 20);
+    mainLayout->setSpacing(14);
+
+    // === HEADER CON TÍTULO Y BOTÓN X ===
+    QHBoxLayout *headerLayout = new QHBoxLayout();
+    headerLayout->setContentsMargins(0, 0, 0, 0);
+    
+    QLabel *titleLabel = new QLabel("Estilo de Trazo", this);
+    titleLabel->setStyleSheet("color: #ffffff; font-size: 14px; font-weight: bold; background: transparent;");
+    headerLayout->addWidget(titleLabel);
+    
+    headerLayout->addStretch();
+    
+    // Botón X para cerrar - elegante y bien centrado
+    QPushButton *closeButton = new QPushButton(this);
+    closeButton->setFixedSize(20, 20);
+    closeButton->setCursor(Qt::PointingHandCursor);
+    closeButton->setStyleSheet(R"(
+        QPushButton {
+            background-color: #1a1a1a;
+            color: #666666;
+            font-size: 14px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            padding-bottom: 2px;
+        }
+        QPushButton:hover {
+            background-color: #e94560;
+            color: #ffffff;
         }
     )");
-
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(20, 20, 20, 20);
-    mainLayout->setSpacing(16);
-
-    // === TÍTULO ===
-    QLabel *titleLabel = new QLabel("✏️ Estilo de Trazo", this);
-    titleLabel->setStyleSheet("color: #ffffff; font-size: 14px; font-weight: bold; background: transparent;");
-    titleLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(titleLabel);
+    closeButton->setText(QString::fromUtf8("×"));
+    connect(closeButton, &QPushButton::clicked, this, &QWidget::hide);
+    headerLayout->addWidget(closeButton);
+    
+    mainLayout->addLayout(headerLayout);
     
     // === SEPARADOR ===
     QFrame *separator1 = new QFrame(this);
     separator1->setFrameShape(QFrame::HLine);
-    separator1->setStyleSheet("background-color: #0f3460; max-height: 1px;");
+    separator1->setStyleSheet("background-color: #2a2a2a; max-height: 1px;");
     mainLayout->addWidget(separator1);
 
     // === SECCIÓN COLOR ===
@@ -92,7 +110,7 @@ void StrokeSettingsPopup::setupUI() {
         slider->setStyleSheet(QString(R"(
             QSlider::groove:horizontal {
                 height: 4px;
-                background: #0f3460;
+                background: #1a1a1a;
                 border-radius: 2px;
             }
             QSlider::handle:horizontal {
@@ -142,8 +160,8 @@ void StrokeSettingsPopup::setupUI() {
     m_hexEdit->setPlaceholderText("RRGGBBAA");
     m_hexEdit->setStyleSheet(R"(
         QLineEdit {
-            background-color: #0f3460;
-            border: 1px solid #1a3a5c;
+            background-color: #1a1a1a;
+            border: 1px solid #333333;
             border-radius: 4px;
             color: #ffffff;
             font-size: 11px;
@@ -209,10 +227,69 @@ void StrokeSettingsPopup::setupUI() {
     }
     mainLayout->addLayout(colorGrid);
 
+    // === SECCION FUENTE (solo modo texto) ===
+    m_textOptionsWidget = new QWidget(this);
+    QVBoxLayout *textLayout = new QVBoxLayout(m_textOptionsWidget);
+    textLayout->setContentsMargins(0,0,0,0);
+    textLayout->setSpacing(8);
+    
+    QLabel *fontLabel = new QLabel("FUENTE", m_textOptionsWidget);
+    fontLabel->setStyleSheet("color: #7f8c8d; font-size: 11px; font-weight: bold; background: transparent; text-transform: uppercase;");
+    textLayout->addWidget(fontLabel);
+
+    m_fontCombo = new QFontComboBox(m_textOptionsWidget);
+    m_fontCombo->setFixedHeight(30);
+    // Estilo básico para que se vea bien en dark mode
+    m_fontCombo->setStyleSheet("QComboBox { background: #1a1a1a; color: white; border: 1px solid #333; border-radius: 4px; padding: 4px; } QComboBox::drop-down { border: none; }");
+    connect(m_fontCombo, &QFontComboBox::currentFontChanged, this, [this](const QFont &f){ 
+        m_fontFamily = f.family(); 
+        updatePreview();
+    });
+    textLayout->addWidget(m_fontCombo);
+    
+    // Botones estilo
+    QHBoxLayout *styleLayout = new QHBoxLayout();
+    styleLayout->setSpacing(8);
+    
+    auto createStyleBtn = [this](const QString &text) -> QPushButton* {
+        QPushButton *btn = new QPushButton(text, this);
+        btn->setCheckable(true);
+        btn->setFixedSize(40, 30);
+        btn->setCursor(Qt::PointingHandCursor);
+        btn->setStyleSheet(
+            "QPushButton { background: #2a2a2a; color: #aaa; border: none; border-radius: 4px; font-weight: bold; font-family: sans-serif; }"
+            "QPushButton:checked { background: #e94560; color: white; }"
+            "QPushButton:hover:!checked { background: #333; }"
+        );
+        connect(btn, &QPushButton::toggled, this, &StrokeSettingsPopup::onFontStyleChanged);
+        return btn;
+    };
+    
+    m_boldBtn = createStyleBtn("B");
+    m_italicBtn = createStyleBtn("I");
+    m_strikeBtn = createStyleBtn("S");
+    
+    // Aplicar estilos visuales a los botones
+    QFont f = m_boldBtn->font(); f.setBold(true); m_boldBtn->setFont(f);
+    f = m_italicBtn->font(); f.setItalic(true); m_italicBtn->setFont(f);
+    f = m_strikeBtn->font(); f.setStrikeOut(true); m_strikeBtn->setFont(f);
+
+    styleLayout->addWidget(m_boldBtn);
+    styleLayout->addWidget(m_italicBtn);
+    styleLayout->addWidget(m_strikeBtn);
+    styleLayout->addStretch();
+    textLayout->addLayout(styleLayout);
+    
+    // Espacio extra
+    textLayout->addSpacing(6);
+
+    mainLayout->addWidget(m_textOptionsWidget);
+    m_textOptionsWidget->setVisible(false); // Default hidden
+
     // === SECCIÓN GROSOR ===
-    QLabel *widthLabel = new QLabel("Grosor", this);
-    widthLabel->setStyleSheet("color: #7f8c8d; font-size: 11px; font-weight: bold; background: transparent; text-transform: uppercase;");
-    mainLayout->addWidget(widthLabel);
+    m_widthTitleLabel = new QLabel("Grosor", this);
+    m_widthTitleLabel->setStyleSheet("color: #7f8c8d; font-size: 11px; font-weight: bold; background: transparent; text-transform: uppercase;");
+    mainLayout->addWidget(m_widthTitleLabel);
     
     // Slider con valor
     QHBoxLayout *sliderLayout = new QHBoxLayout();
@@ -224,7 +301,7 @@ void StrokeSettingsPopup::setupUI() {
     m_widthSlider->setStyleSheet(R"(
         QSlider::groove:horizontal {
             height: 6px;
-            background: #0f3460;
+            background: #1a1a1a;
             border-radius: 3px;
         }
         QSlider::handle:horizontal {
@@ -261,10 +338,28 @@ void StrokeSettingsPopup::setupUI() {
     m_previewLabel = new QLabel(this);
     m_previewLabel->setFixedHeight(40);
     m_previewLabel->setAlignment(Qt::AlignCenter);
-    m_previewLabel->setStyleSheet("background-color: #0f3460; border-radius: 8px;");
+    m_previewLabel->setStyleSheet("background-color: #1a1a1a; border-radius: 8px;");
     mainLayout->addWidget(m_previewLabel);
 
     updatePreview();
+    
+    // Botón Aceptar (NUEVO)
+    QPushButton *applyButton = new QPushButton("Aceptar", this);
+    applyButton->setCursor(Qt::PointingHandCursor);
+    applyButton->setStyleSheet(R"(
+        QPushButton {
+            background-color: #27ae60;
+            color: white;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        QPushButton:hover {
+            background-color: #2ecc71;
+        }
+    )");
+    connect(applyButton, &QPushButton::clicked, this, &StrokeSettingsPopup::onApplyClicked);
+    mainLayout->addWidget(applyButton);
     
     setFixedWidth(340);
     adjustSize();
@@ -290,24 +385,23 @@ void StrokeSettingsPopup::setColor(const QColor &color) {
         updateRgbaSliders();
         updateHexEdit();
         updatePreview();
-        emit colorChanged(m_color);
     }
 }
 
 void StrokeSettingsPopup::setStrokeWidth(int width) {
-    width = qBound(1, width, 15);
+    width = qBound(1, width, 100);
     if (m_strokeWidth != width) {
         m_strokeWidth = width;
         m_widthSlider->setValue(width);
         m_widthLabel->setText(QString::number(width) + " px");
         updatePreview();
-        emit strokeWidthChanged(m_strokeWidth);
     }
 }
 
 void StrokeSettingsPopup::showNear(QWidget *anchor) {
     if (anchor) {
-        QPoint globalPos = anchor->mapToGlobal(QPoint(anchor->width() + 10, 0));
+        // Más separación de la barra lateral (30px en lugar de 10px)
+        QPoint globalPos = anchor->mapToGlobal(QPoint(anchor->width() + 30, 0));
         move(globalPos);
     }
     show();
@@ -325,21 +419,53 @@ void StrokeSettingsPopup::onWidthSliderChanged(int value) {
     m_strokeWidth = value;
     m_widthLabel->setText(QString::number(value) + " px");
     updatePreview();
-    emit strokeWidthChanged(value);
+}
+
+void StrokeSettingsPopup::onApplyClicked() {
+    emit colorChanged(m_color);
+    emit strokeWidthChanged(m_strokeWidth);
+    
+    if (m_isTextMode) {
+        QFont f(m_fontFamily);
+        f.setBold(m_isBold);
+        f.setItalic(m_isItalic);
+        f.setStrikeOut(m_isStrikeOut);
+        f.setPixelSize(m_strokeWidth);
+        emit fontChanged(f);
+    }
+    
+    hide();
 }
 
 void StrokeSettingsPopup::updatePreview() {
     // Crear imagen de preview con fondo transparente
-    QPixmap preview(200, 30);
+    int height = m_isTextMode ? qMax(40, m_strokeWidth + 10) : 40;
+    // Asegurar que cabe
+    if (height > 80) height = 80;
+    
+    QPixmap preview(240, height);
     preview.fill(Qt::transparent);
+    m_previewLabel->setFixedHeight(height);
     
     QPainter painter(&preview);
     painter.setRenderHint(QPainter::Antialiasing);
+    painter.setRenderHint(QPainter::TextAntialiasing);
     
-    QPen pen(m_color, m_strokeWidth);
-    pen.setCapStyle(Qt::RoundCap);
-    painter.setPen(pen);
-    painter.drawLine(20, 15, 180, 15);
+    if (m_isTextMode) {
+        QFont f(m_fontFamily);
+        f.setPixelSize(m_strokeWidth); // Usar PixelSize para control exacto
+        f.setBold(m_isBold);
+        f.setItalic(m_isItalic);
+        f.setStrikeOut(m_isStrikeOut);
+        painter.setFont(f);
+        painter.setPen(m_color);
+        painter.drawText(preview.rect(), Qt::AlignCenter, "Abc");
+    } else {
+        QPen pen(m_color, m_strokeWidth);
+        pen.setCapStyle(Qt::RoundCap);
+        painter.setPen(pen);
+        painter.drawLine(20, height/2, 220, height/2);
+    }
     
     m_previewLabel->setPixmap(preview);
 }
@@ -367,7 +493,7 @@ void StrokeSettingsPopup::onRgbaSliderChanged() {
         updateColorButtonStyle();
         updateHexEdit();
         updatePreview();
-        emit colorChanged(m_color);
+        updatePreview();
     }
     
     m_updatingFromSliders = false;
@@ -403,7 +529,7 @@ void StrokeSettingsPopup::onHexEditChanged() {
         updateColorButtonStyle();
         updateRgbaSliders();
         updatePreview();
-        emit colorChanged(m_color);
+        updatePreview();
     }
     
     m_updatingFromHex = false;
@@ -443,3 +569,62 @@ void StrokeSettingsPopup::updateHexEdit() {
     
     m_hexEdit->setText(hex.toUpper());
 }
+
+void StrokeSettingsPopup::paintEvent(QPaintEvent *event) {
+    Q_UNUSED(event);
+    
+    QPainter painter(this);
+    painter.setRenderHint(QPainter::Antialiasing);
+    
+    // Dibujar fondo negro con esquinas redondeadas
+    QPainterPath path;
+    path.addRoundedRect(rect(), 16, 16);
+    
+    // Fondo negro
+    painter.fillPath(path, QColor("#0d0d0d"));
+    
+    // Borde gris oscuro
+    painter.setPen(QPen(QColor("#2a2a2a"), 1));
+    painter.drawPath(path);
+}
+
+
+bool StrokeSettingsPopup::event(QEvent *event) {
+    return QWidget::event(event);
+}
+
+void StrokeSettingsPopup::setTextMode(bool enabled) {
+    m_isTextMode = enabled;
+    
+    if (m_textOptionsWidget) {
+        m_textOptionsWidget->setVisible(enabled);
+    }
+
+    if (enabled) {
+        m_widthTitleLabel->setText("Tamaño Fuente");
+        // Ajustamos el rango del slider para tamaño de fuente (ej. 8 a 72)
+        m_widthSlider->setRange(8, 72);
+        // Si el valor actual es muy bajo (grosor de línea), poner un valor por defecto legible
+        if (m_strokeWidth < 8) {
+            setStrokeWidth(20);
+        }
+    } else {
+        m_widthTitleLabel->setText("Grosor");
+        m_widthSlider->setRange(1, 20);
+        // Si teníamos un tamaño de fuente grande, volver a un grosor razonable
+        if (m_strokeWidth > 20) {
+            setStrokeWidth(3);
+        }
+    }
+    
+    adjustSize();
+    updatePreview();
+}
+
+void StrokeSettingsPopup::onFontStyleChanged() {
+    m_isBold = m_boldBtn->isChecked();
+    m_isItalic = m_italicBtn->isChecked();
+    m_isStrikeOut = m_strikeBtn->isChecked();
+    updatePreview();
+}
+

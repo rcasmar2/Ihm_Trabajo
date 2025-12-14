@@ -2,9 +2,12 @@
 
 #include <QGraphicsView>
 #include <QPointF>
+#include <QColor>
 
 class ChartController;
 class QGraphicsScene;
+class QFrame;
+class QLabel;
 
 /**
  * ChartWidget - QGraphicsView personalizado para la carta náutica
@@ -23,6 +26,9 @@ public:
 
     ChartController* controller() const { return m_controller; }
     QGraphicsScene* chartScene() const { return m_scene; }
+    
+    // Indicador de herramienta
+    void updateToolIndicator(const QString &toolName, const QColor &color, int width, bool isDrawingTool);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -43,9 +49,16 @@ private:
     // Última posición del ratón para zoom centrado
     QPoint m_lastMousePos;
     double m_currentZoom = 1.0;
+    
+    // Indicador de herramienta overlay
+    QFrame *m_toolIndicator = nullptr;
+    QLabel *m_toolLabel = nullptr;
+    QLabel *m_toolColorPreview = nullptr;
+    QLabel *m_toolWidthLabel = nullptr;
 
     void applyZoomAtPoint(double factor, const QPoint &viewPos);
     void centerOnChart();
+    void setupToolIndicator();
 
 private slots:
     void onZoomChanged(double factor);

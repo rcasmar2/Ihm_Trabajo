@@ -7,7 +7,9 @@
 #include <QGraphicsEllipseItem>
 #include <QGraphicsPathItem>
 #include <QStack>
+#include <QStack>
 #include <QColor>
+#include <QFont> // NECESARIO
 #include "charttypes.h"
 
 // Forward declarations for SVG overlay tools
@@ -61,8 +63,10 @@ public:
     // === ESTILOS ===
     void setStrokeColor(const QColor &color);
     void setStrokeWidth(int width);
+    void setFont(const QFont &font); // NUEVO
     QColor strokeColor() const { return m_strokeColor; }
     int strokeWidth() const { return m_strokeWidth; }
+    QFont font() const { return m_font; } // NUEVO
 
     // === CALIBRACIÓN ===
     void setCalibrationPoints(const QPointF &pixel1, const GeoCoord &coord1,
@@ -86,12 +90,13 @@ signals:
     void angleChanged(double angle);
 
 private:
-    QGraphicsScene *m_scene;
+   QGraphicsScene *m_scene;
     QGraphicsPixmapItem *m_chartImage = nullptr;
     ToolMode m_currentTool = ToolMode::Pan;
     double m_zoomLevel = 1.0;
     QColor m_strokeColor = QColor("#e94560");
     int m_strokeWidth = 3;
+    QFont m_font = QFont("Arial", 12); // NUEVO
     QStack<QGraphicsItem*> m_undoStack;
 
     // Estado de dibujo

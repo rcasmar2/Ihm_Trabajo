@@ -4,5 +4,16 @@
         <file>resources/icons/compass_leg.svg</file>
         <file>resources/icons/ruler.svg</file>
         <file>resources/icons/transportador.svg</file>
+        <file>resources/icons/arc.svg</file>
+        <file>resources/icons/eraser.svg</file>
+        <file>resources/icons/hand.svg</file>
+        <file>resources/icons/line.svg</file>
+        <file>resources/icons/point.svg</file>
+        <file>resources/icons/quiz.svg</file>
+        <file>resources/icons/text.svg</file>
+        <file>resources/icons/trash-2.svg</file>
+        <file>resources/icons/undo-2.svg</file>
+        <file>resources/icons/zoom-in.svg</file>
+        <file>resources/icons/zoom-out.svg</file>
     </qresource>
 </RCC>

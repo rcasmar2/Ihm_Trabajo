@@ -16,6 +16,11 @@
 #include <QFileDialog>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QIcon>
+#include <QPixmap>
+#include <QImage>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -27,7 +32,6 @@ MainWindow::MainWindow(QWidget *parent)
     , m_coordLabel(nullptr)
     , m_zoomLabel(nullptr)
     , m_angleLabel(nullptr)
-    , m_toolLabel(nullptr)
     , m_toolGroup(nullptr)
     , m_strokePopup(nullptr)
 {
@@ -42,6 +46,9 @@ MainWindow::MainWindow(QWidget *parent)
     // Iniciar mostrando el dashboard directamente para debug
     // En producción: showLoginPage()
     showDashboard();
+    
+    // Inicializar indicador con la herramienta por defecto (Pan -> "Moverse")
+    onToolChanged(static_cast<int>(ToolMode::Pan));
 }
 
 MainWindow::~MainWindow()
@@ -80,6 +87,104 @@ void MainWindow::setupToolbar() {
     // Seleccionar Pan por defecto
     ui->toolPan->setChecked(true);
     
+    // === FUNCIÓN PARA CREAR ICONOS BLANCOS ===
+    auto createWhiteIcon = [](const QString &iconPath) -> QIcon {
+        QPixmap pixmap(iconPath);
+        if (pixmap.isNull()) return QIcon(iconPath);
+        
+        // Crear una imagen con el pixmap
+        QImage img = pixmap.toImage();
+        
+        // Colorear todos los píxeles negros/oscuros a blanco
+        for (int y = 0; y < img.height(); ++y) {
+            for (int x = 0; x < img.width(); ++x) {
+                QColor color = img.pixelColor(x, y);
+                if (color.alpha() > 0) {
+                    // Mantener el alpha, pero hacer el color blanco
+                    img.setPixelColor(x, y, QColor(255, 255, 255, color.alpha()));
+                }
+            }
+        }
+        return QIcon(QPixmap::fromImage(img));
+    };
+    
+    // === CONFIGURAR BOTONES CON ICONOS BLANCOS ===
+    auto setupToolButton = [&createWhiteIcon](QPushButton *btn, const QString &iconPath, const QString &bgColor = "#1a1a1a") {
+        btn->setText("");
+        btn->setIcon(createWhiteIcon(iconPath));
+        btn->setIconSize(QSize(24, 24));
+        QString style = QString(R"(
+            QPushButton { 
+                background-color: %1; 
+                border-radius: 12px; 
+                border: 2px solid transparent;
+            } 
+            QPushButton:checked { 
+                background-color: #e94560; 
+                border-color: #ff6b6b;
+            }
+            QPushButton:hover:!checked { 
+                background-color: #2a2a2a; 
+            }
+            QPushButton:pressed { 
+                background-color: #e94560; 
+            }
+        )").arg(bgColor);
+        btn->setStyleSheet(style);
+    };
+    
+    // Navegación
+    setupToolButton(ui->toolPan, ":/resources/icons/hand.svg");
+    setupToolButton(ui->toolZoomIn, ":/resources/icons/zoom-in.svg");
+    setupToolButton(ui->toolZoomOut, ":/resources/icons/zoom-out.svg");
+    
+    // Dibujo
+    setupToolButton(ui->toolPoint, ":/resources/icons/point.svg");
+    setupToolButton(ui->toolLine, ":/resources/icons/line.svg");
+    setupToolButton(ui->toolArc, ":/resources/icons/arc.svg");
+    setupToolButton(ui->toolText, ":/resources/icons/text.svg");
+    setupToolButton(ui->toolEraser, ":/resources/icons/eraser.svg");
+    
+    // Medición (verde cuando seleccionado)
+    auto setupMeasureButton = [&createWhiteIcon](QPushButton *btn, const QString &iconPath) {
+        btn->setText("");
+        btn->setIcon(createWhiteIcon(iconPath));
+        btn->setIconSize(QSize(24, 24));
+        btn->setStyleSheet(R"(
+            QPushButton { 
+                background-color: #1a1a1a; 
+                border-radius: 12px; 
+                border: 2px solid transparent;
+            } 
+            QPushButton:checked { 
+                background-color: #27ae60; 
+                border-color: #2ecc71;
+            }
+            QPushButton:hover:!checked { 
+                background-color: #2a2a2a; 
+            }
+        )");
+    };
+    setupMeasureButton(ui->toolProtractor, ":/resources/icons/transportador.svg");
+    setupMeasureButton(ui->toolRuler, ":/resources/icons/ruler.svg");
+    
+    // Acciones
+    setupToolButton(ui->toolUndo, ":/resources/icons/undo-2.svg");
+    setupToolButton(ui->toolClear, ":/resources/icons/trash-2.svg");
+    
+    // Quiz (naranja con icono negro que contrasta bien)
+    ui->toolQuiz->setText("");
+    ui->toolQuiz->setIcon(QIcon(":/resources/icons/quiz.svg"));
+    ui->toolQuiz->setIconSize(QSize(24, 24));
+    ui->toolQuiz->setStyleSheet(R"(
+        QPushButton { 
+            background-color: #f39c12; 
+            border-radius: 12px;
+        } 
+        QPushButton:pressed { background-color: #e67e22; }
+        QPushButton:hover { background-color: #e67e22; }
+    )");
+    
     // Crear popup de configuración de trazo
     m_strokePopup = new StrokeSettingsPopup(this);
     m_strokePopup->setColor(m_chartWidget->controller()->strokeColor());
@@ -90,15 +195,40 @@ void MainWindow::setupToolbar() {
             this, &MainWindow::onStrokeColorChanged);
     connect(m_strokePopup, &StrokeSettingsPopup::strokeWidthChanged,
             this, &MainWindow::onStrokeWidthChanged);
+    connect(m_strokePopup, &StrokeSettingsPopup::fontChanged,
+            m_chartWidget->controller(), &ChartController::setFont);
+    
+    // Conectar botones de dibujo para mostrar popup al hacer clic (incluso si ya están seleccionados)
+    connect(ui->toolPoint, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolPoint); });
+    connect(ui->toolLine, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolLine); });
+    connect(ui->toolArc, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolArc); });
+    connect(ui->toolText, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolText); });
+    
+    // === HACER LA TOOLBAR FLOTANTE ===
+    // Sacar la toolbar del layout y posicionarla como overlay
+    ui->toolbarScrollArea->setParent(ui->dashboardPage);
+    ui->toolbarScrollArea->raise();
+    
+    // Posicionar la toolbar flotante
+    ui->toolbarScrollArea->move(16, 8);
+    
+    // Aplicar estilo flotante con sombra sutil
+    ui->toolbarScrollArea->setStyleSheet(R"(
+        QScrollArea { 
+            background-color: #0d0d0d; 
+            border: none; 
+            border-radius: 16px;
+        }
+        QWidget#toolbarContent { 
+            background-color: #0d0d0d; 
+            border-radius: 16px;
+        }
+    )");
 }
 
 void MainWindow::setupStatusBar() {
-    // Etiqueta de herramienta actual
-    m_toolLabel = new QLabel("🔧 Mano", this);
-    m_toolLabel->setStyleSheet("color: #e94560; font-weight: bold; padding: 0 15px;");
-    
     // Etiqueta de coordenadas
-    m_coordLabel = new QLabel("📍 --°--'--\"N --°--'--\"W", this);
+    m_coordLabel = new QLabel("--°--'--\"N --°--'--\"W", this);
     m_coordLabel->setStyleSheet("color: #e0e0e0; padding: 0 15px;");
     
     // Etiqueta de ángulo (transportador)
@@ -107,10 +237,9 @@ void MainWindow::setupStatusBar() {
     m_angleLabel->setVisible(false);
     
     // Etiqueta de zoom
-    m_zoomLabel = new QLabel("🔍 100%", this);
+    m_zoomLabel = new QLabel("100%", this);
     m_zoomLabel->setStyleSheet("color: #3498db; font-weight: bold; padding: 0 15px;");
 
-    ui->statusbar->addWidget(m_toolLabel);
     ui->statusbar->addWidget(m_coordLabel, 1);
     ui->statusbar->addWidget(m_angleLabel);
     ui->statusbar->addPermanentWidget(m_zoomLabel);
@@ -311,11 +440,11 @@ void MainWindow::onStartQuiz() {
 
 void MainWindow::onCoordinatesUpdated(double lat, double lon) {
     GeoCoord coord{lat, lon};
-    m_coordLabel->setText(QString("📍 %1").arg(coord.toDMS()));
+    m_coordLabel->setText(coord.toDMS());
 }
 
 void MainWindow::onZoomChanged(double factor) {
-    m_zoomLabel->setText(QString("🔍 %1%").arg(static_cast<int>(factor * 100)));
+    m_zoomLabel->setText(QString("%1%").arg(static_cast<int>(factor * 100)));
 }
 
 void MainWindow::onToolChanged(int toolMode) {
@@ -327,59 +456,91 @@ void MainWindow::onToolChanged(int toolMode) {
     
     switch (mode) {
     case ToolMode::Pan: 
-        toolName = "🔧 Mano"; 
+        toolName = "Moverse"; 
         break;
     case ToolMode::Point: 
-        toolName = "🔧 Punto"; 
+        toolName = "Punto"; 
         anchor = ui->toolPoint;
         isDrawingTool = true;
         break;
     case ToolMode::Line: 
-        toolName = "🔧 Línea"; 
+        toolName = "Línea"; 
         anchor = ui->toolLine;
         isDrawingTool = true;
         break;
     case ToolMode::Arc: 
-        toolName = "🔧 Arco"; 
+        toolName = "Arco"; 
         anchor = ui->toolArc;
         isDrawingTool = true;
         break;
     case ToolMode::Text: 
-        toolName = "🔧 Texto"; 
+        toolName = "Texto"; 
         anchor = ui->toolText;
         isDrawingTool = true;
         break;
     case ToolMode::Eraser: 
-        toolName = "🔧 Borrador"; 
+        toolName = "Borrador"; 
         break;
     case ToolMode::Protractor: 
-        toolName = "🔧 Transportador"; 
+        toolName = "Transportador"; 
         break;
     case ToolMode::Ruler: 
-        toolName = "🔧 Regla"; 
+        toolName = "Regla"; 
         break;
     default: 
-        toolName = "🔧 Seleccionar"; 
+        toolName = "Selecciona"; 
         break;
     }
     
-    m_toolLabel->setText(toolName);
-    
-    // Mostrar/ocultar ángulo según herramienta
+// Mostrar/ocultar ángulo según herramienta
     m_angleLabel->setVisible(mode == ToolMode::Protractor);
     
-    // Mostrar popup de color/grosor para herramientas de dibujo
-    if (isDrawingTool && anchor) {
-        showStrokeSettings(anchor);
-    } else if (m_strokePopup) {
-        m_strokePopup->hide();
+    // Configurar cursor según herramienta
+    QCursor cursor = Qt::ArrowCursor;
+    bool showPopup = isDrawingTool;
+    
+    switch (mode) {
+    case ToolMode::Pan: 
+        cursor = Qt::OpenHandCursor; 
+        break;
+    case ToolMode::Point: 
+    case ToolMode::Line:
+    case ToolMode::Arc:
+        cursor = Qt::CrossCursor;
+        break;
+    case ToolMode::Text:
+        cursor = Qt::IBeamCursor;
+        break;
+    case ToolMode::Eraser:
+        cursor = Qt::PointingHandCursor; // O un icono de goma si tuviéramos
+        break;
+    default:
+        cursor = Qt::ArrowCursor;
+        break;
+    }
+    m_chartWidget->setCursor(cursor);
+    
+    // Actualizar indicador de herramienta en el ChartWidget (mostrar para todas)
+    QColor color = m_chartWidget->controller()->strokeColor();
+    int width = m_chartWidget->controller()->strokeWidth();
+    m_chartWidget->updateToolIndicator(toolName, color, width, isDrawingTool);
+    
+    // Configurar popup de trazo (modo texto vs normal)
+    if (m_strokePopup) {
+        m_strokePopup->setTextMode(mode == ToolMode::Text);
+        
+        if (showPopup && anchor) {
+            showStrokeSettings(anchor);
+        } else {
+            m_strokePopup->hide();
+        }
     }
     
     updateToolButtonStates();
 }
 
 void MainWindow::onAngleChanged(double angle) {
-    m_angleLabel->setText(QString("📐 %1°").arg(angle, 0, 'f', 1));
+    m_angleLabel->setText(QString("%1°").arg(angle, 0, 'f', 1));
     m_angleLabel->setVisible(true);
 }
 
@@ -454,15 +615,28 @@ void MainWindow::onAbout() {
 
 void MainWindow::onStrokeColorChanged(const QColor &color) {
     m_chartWidget->controller()->setStrokeColor(color);
+    // Actualizar indicador
+    int width = m_chartWidget->controller()->strokeWidth();
+    m_chartWidget->updateToolIndicator("", color, width, true);
 }
 
 void MainWindow::onStrokeWidthChanged(int width) {
     m_chartWidget->controller()->setStrokeWidth(width);
+    // Actualizar indicador
+    QColor color = m_chartWidget->controller()->strokeColor();
+    m_chartWidget->updateToolIndicator("", color, width, true);
 }
 
 void MainWindow::showStrokeSettings(QWidget *anchor) {
     if (m_strokePopup) {
         m_strokePopup->showNear(anchor);
     }
+}
+
+void MainWindow::updateToolIndicator() {
+    // Delegamos al ChartWidget
+    QColor color = m_chartWidget->controller()->strokeColor();
+    int width = m_chartWidget->controller()->strokeWidth();
+    m_chartWidget->updateToolIndicator("", color, width, true);
 }
 

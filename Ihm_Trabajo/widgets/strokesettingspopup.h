@@ -2,6 +2,7 @@
 
 #include <QWidget>
 #include <QColor>
+#include <QFontComboBox> // Include completo en vez de fwd decl
 
 class QSlider;
 class QPushButton;
@@ -27,24 +28,43 @@ public:
     
     void showNear(QWidget *anchor);
 
+// ...
 signals:
     void colorChanged(const QColor &color);
     void strokeWidthChanged(int width);
+    void fontChanged(const QFont &font);
+
+protected slots:
+    void onFontStyleChanged();
 
 private slots:
     void onColorButtonClicked();
     void onWidthSliderChanged(int value);
     void onRgbaSliderChanged();
     void onHexEditChanged();
+    void onApplyClicked();
 
 private:
     QColor m_color = QColor("#e94560");
     int m_strokeWidth = 3;
     
+    // Font State
+    bool m_isBold = false;
+    bool m_isItalic = false;
+    bool m_isStrikeOut = false;
+    QString m_fontFamily = "Arial";
+    
     QPushButton *m_colorButton;
     QSlider *m_widthSlider;
     QLabel *m_widthLabel;
     QLabel *m_previewLabel;
+    
+    // Text Controls
+    QWidget *m_textOptionsWidget = nullptr;
+    QFontComboBox *m_fontCombo = nullptr;
+    QPushButton *m_boldBtn = nullptr;
+    QPushButton *m_italicBtn = nullptr;
+    QPushButton *m_strikeBtn = nullptr;
     
     // RGBA Sliders
     QSlider *m_redSlider;
@@ -58,6 +78,15 @@ private:
     
     // Hex input
     QLineEdit *m_hexEdit;
+    
+    // Text Mode
+    bool m_isTextMode = false;
+    QLabel *m_widthTitleLabel; // "GROSOR" o "TAMAÑO FUENTE"
+    
+public:
+    void setTextMode(bool enabled);
+    
+private:    
     bool m_updatingFromSliders = false;
     bool m_updatingFromHex = false;
     
@@ -66,4 +95,8 @@ private:
     void updateRgbaSliders();
     void updateHexEdit();
     void setupUI();
+    
+protected:
+    void paintEvent(QPaintEvent *event) override;
+    bool event(QEvent *event) override;
 };

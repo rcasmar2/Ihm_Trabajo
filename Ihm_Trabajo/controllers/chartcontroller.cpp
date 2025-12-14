@@ -304,7 +304,11 @@ void ChartController::setStrokeColor(const QColor &color) {
 }
 
 void ChartController::setStrokeWidth(int width) {
-    m_strokeWidth = qBound(1, width, 20);
+    m_strokeWidth = qBound(1, width, 100); // Ampliar rango para texto
+}
+
+void ChartController::setFont(const QFont &font) {
+    m_font = font;
 }
 
 // === HERRAMIENTAS OVERLAY (SVG) ===
@@ -507,7 +511,12 @@ void ChartController::createText(const QPointF &pos) {
         QGraphicsTextItem *textItem = m_scene->addText(text);
         textItem->setPos(pos);
         textItem->setDefaultTextColor(m_strokeColor);
-        textItem->setFont(QFont("Arial", m_strokeWidth * 4));
+        
+        // Configurar fuente con el tamaño seleccionado
+        QFont f = m_font;
+        f.setPixelSize(qMax(8, m_strokeWidth));
+        textItem->setFont(f);
+        
         textItem->setFlag(QGraphicsItem::ItemIsSelectable);
         textItem->setFlag(QGraphicsItem::ItemIsMovable);
         
