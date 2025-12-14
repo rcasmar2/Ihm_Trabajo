@@ -5,10 +5,12 @@
 #include <QSlider>
 #include <QPushButton>
 #include <QLabel>
+#include <QLineEdit>
 #include <QColorDialog>
 #include <QPainter>
 #include <QPalette>
 #include <QGraphicsDropShadowEffect>
+#include <QRegularExpressionValidator>
 
 StrokeSettingsPopup::StrokeSettingsPopup(QWidget *parent)
     : QWidget(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint)
@@ -57,21 +59,117 @@ void StrokeSettingsPopup::setupUI() {
     colorLabel->setStyleSheet("color: #7f8c8d; font-size: 11px; font-weight: bold; background: transparent; text-transform: uppercase;");
     mainLayout->addWidget(colorLabel);
 
-    // Color seleccionado (separado)
-    QHBoxLayout *selectedColorLayout = new QHBoxLayout();
-    selectedColorLayout->setAlignment(Qt::AlignLeft);
+    // === PERSONALIZADOR DE COLOR ===
+    QHBoxLayout *colorCustomizerLayout = new QHBoxLayout();
+    colorCustomizerLayout->setSpacing(16);
     
+    // Botón de color seleccionado (izquierda)
     m_colorButton = new QPushButton(this);
-    m_colorButton->setFixedSize(52, 52);
+    m_colorButton->setFixedSize(64, 64);
     m_colorButton->setCursor(Qt::PointingHandCursor);
+    m_colorButton->setToolTip("Click para seleccionar color");
     updateColorButtonStyle();
     connect(m_colorButton, &QPushButton::clicked, this, &StrokeSettingsPopup::onColorButtonClicked);
-    selectedColorLayout->addWidget(m_colorButton);
-    selectedColorLayout->addStretch();
-    mainLayout->addLayout(selectedColorLayout);
+    colorCustomizerLayout->addWidget(m_colorButton);
+    
+    // Panel de sliders RGBA y Hex (derecha)
+    QVBoxLayout *rgbaLayout = new QVBoxLayout();
+    rgbaLayout->setSpacing(4);
+    
+    // Estilo común para sliders RGBA
+    auto createRgbaSlider = [this](const QString &labelText, const QString &color, QSlider *&slider, QLabel *&valueLabel) {
+        QHBoxLayout *row = new QHBoxLayout();
+        row->setSpacing(6);
+        
+        QLabel *label = new QLabel(labelText, this);
+        label->setFixedWidth(12);
+        label->setStyleSheet(QString("color: %1; font-size: 10px; font-weight: bold; background: transparent;").arg(color));
+        row->addWidget(label);
+        
+        slider = new QSlider(Qt::Horizontal, this);
+        slider->setRange(0, 255);
+        slider->setFixedHeight(16);
+        slider->setStyleSheet(QString(R"(
+            QSlider::groove:horizontal {
+                height: 4px;
+                background: #0f3460;
+                border-radius: 2px;
+            }
+            QSlider::handle:horizontal {
+                background: %1;
+                width: 12px;
+                height: 12px;
+                margin: -4px 0;
+                border-radius: 6px;
+            }
+            QSlider::handle:horizontal:hover {
+                background: %1;
+                border: 1px solid #ffffff;
+            }
+            QSlider::sub-page:horizontal {
+                background: %1;
+                border-radius: 2px;
+            }
+        )").arg(color));
+        connect(slider, &QSlider::valueChanged, this, &StrokeSettingsPopup::onRgbaSliderChanged);
+        row->addWidget(slider);
+        
+        valueLabel = new QLabel("0", this);
+        valueLabel->setFixedWidth(28);
+        valueLabel->setStyleSheet(QString("color: %1; font-size: 10px; background: transparent;").arg(color));
+        valueLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        row->addWidget(valueLabel);
+        
+        return row;
+    };
+    
+    rgbaLayout->addLayout(createRgbaSlider("R", "#ff6b6b", m_redSlider, m_redLabel));
+    rgbaLayout->addLayout(createRgbaSlider("G", "#51cf66", m_greenSlider, m_greenLabel));
+    rgbaLayout->addLayout(createRgbaSlider("B", "#339af0", m_blueSlider, m_blueLabel));
+    rgbaLayout->addLayout(createRgbaSlider("A", "#868e96", m_alphaSlider, m_alphaLabel));
+    
+    // Campo Hex
+    QHBoxLayout *hexRow = new QHBoxLayout();
+    hexRow->setSpacing(6);
+    
+    QLabel *hexLabel = new QLabel("#", this);
+    hexLabel->setFixedWidth(12);
+    hexLabel->setStyleSheet("color: #ffffff; font-size: 11px; font-weight: bold; background: transparent;");
+    hexRow->addWidget(hexLabel);
+    
+    m_hexEdit = new QLineEdit(this);
+    m_hexEdit->setMaxLength(8);  // RRGGBBAA
+    m_hexEdit->setPlaceholderText("RRGGBBAA");
+    m_hexEdit->setStyleSheet(R"(
+        QLineEdit {
+            background-color: #0f3460;
+            border: 1px solid #1a3a5c;
+            border-radius: 4px;
+            color: #ffffff;
+            font-size: 11px;
+            font-family: 'Consolas', monospace;
+            padding: 2px 6px;
+        }
+        QLineEdit:focus {
+            border-color: #e94560;
+        }
+    )");
+    QRegularExpression hexRegex("[0-9A-Fa-f]{0,8}");
+    m_hexEdit->setValidator(new QRegularExpressionValidator(hexRegex, this));
+    connect(m_hexEdit, &QLineEdit::textEdited, this, &StrokeSettingsPopup::onHexEditChanged);
+    hexRow->addWidget(m_hexEdit);
+    
+    rgbaLayout->addLayout(hexRow);
+    
+    colorCustomizerLayout->addLayout(rgbaLayout);
+    mainLayout->addLayout(colorCustomizerLayout);
+    
+    // Inicializar sliders con el color actual
+    updateRgbaSliders();
+    updateHexEdit();
     
     // Espaciado extra
-    mainLayout->addSpacing(8);
+    mainLayout->addSpacing(4);
     
     // Label para colores rápidos
     QLabel *quickColorsLabel = new QLabel("Colores rápidos", this);
@@ -168,7 +266,7 @@ void StrokeSettingsPopup::setupUI() {
 
     updatePreview();
     
-    setFixedWidth(240);
+    setFixedWidth(340);
     adjustSize();
 }
 
@@ -189,6 +287,8 @@ void StrokeSettingsPopup::setColor(const QColor &color) {
     if (m_color != color) {
         m_color = color;
         updateColorButtonStyle();
+        updateRgbaSliders();
+        updateHexEdit();
         updatePreview();
         emit colorChanged(m_color);
     }
@@ -242,4 +342,104 @@ void StrokeSettingsPopup::updatePreview() {
     painter.drawLine(20, 15, 180, 15);
     
     m_previewLabel->setPixmap(preview);
+}
+
+void StrokeSettingsPopup::onRgbaSliderChanged() {
+    if (m_updatingFromHex) return;
+    
+    m_updatingFromSliders = true;
+    
+    int r = m_redSlider->value();
+    int g = m_greenSlider->value();
+    int b = m_blueSlider->value();
+    int a = m_alphaSlider->value();
+    
+    // Actualizar labels
+    m_redLabel->setText(QString::number(r));
+    m_greenLabel->setText(QString::number(g));
+    m_blueLabel->setText(QString::number(b));
+    m_alphaLabel->setText(QString::number(a));
+    
+    // Actualizar color
+    QColor newColor(r, g, b, a);
+    if (m_color != newColor) {
+        m_color = newColor;
+        updateColorButtonStyle();
+        updateHexEdit();
+        updatePreview();
+        emit colorChanged(m_color);
+    }
+    
+    m_updatingFromSliders = false;
+}
+
+void StrokeSettingsPopup::onHexEditChanged() {
+    if (m_updatingFromSliders) return;
+    
+    QString hex = m_hexEdit->text().toUpper();
+    if (hex.length() < 6) return;  // Mínimo RRGGBB
+    
+    m_updatingFromHex = true;
+    
+    bool ok;
+    int r = hex.mid(0, 2).toInt(&ok, 16);
+    if (!ok) { m_updatingFromHex = false; return; }
+    
+    int g = hex.mid(2, 2).toInt(&ok, 16);
+    if (!ok) { m_updatingFromHex = false; return; }
+    
+    int b = hex.mid(4, 2).toInt(&ok, 16);
+    if (!ok) { m_updatingFromHex = false; return; }
+    
+    int a = 255;
+    if (hex.length() >= 8) {
+        a = hex.mid(6, 2).toInt(&ok, 16);
+        if (!ok) a = 255;
+    }
+    
+    QColor newColor(r, g, b, a);
+    if (m_color != newColor) {
+        m_color = newColor;
+        updateColorButtonStyle();
+        updateRgbaSliders();
+        updatePreview();
+        emit colorChanged(m_color);
+    }
+    
+    m_updatingFromHex = false;
+}
+
+void StrokeSettingsPopup::updateRgbaSliders() {
+    // Bloquear señales para evitar recursión
+    m_redSlider->blockSignals(true);
+    m_greenSlider->blockSignals(true);
+    m_blueSlider->blockSignals(true);
+    m_alphaSlider->blockSignals(true);
+    
+    m_redSlider->setValue(m_color.red());
+    m_greenSlider->setValue(m_color.green());
+    m_blueSlider->setValue(m_color.blue());
+    m_alphaSlider->setValue(m_color.alpha());
+    
+    m_redLabel->setText(QString::number(m_color.red()));
+    m_greenLabel->setText(QString::number(m_color.green()));
+    m_blueLabel->setText(QString::number(m_color.blue()));
+    m_alphaLabel->setText(QString::number(m_color.alpha()));
+    
+    m_redSlider->blockSignals(false);
+    m_greenSlider->blockSignals(false);
+    m_blueSlider->blockSignals(false);
+    m_alphaSlider->blockSignals(false);
+}
+
+void StrokeSettingsPopup::updateHexEdit() {
+    if (m_updatingFromHex) return;
+    
+    QString hex = QString("%1%2%3%4")
+        .arg(m_color.red(), 2, 16, QChar('0'))
+        .arg(m_color.green(), 2, 16, QChar('0'))
+        .arg(m_color.blue(), 2, 16, QChar('0'))
+        .arg(m_color.alpha(), 2, 16, QChar('0'));
+    
+    m_hexEdit->setText(hex.toUpper());
 }

@@ -6,6 +6,7 @@
 class QSlider;
 class QPushButton;
 class QLabel;
+class QLineEdit;
 
 /**
  * StrokeSettingsPopup - Panel flotante para configurar color y grosor de trazo
@@ -33,6 +34,8 @@ signals:
 private slots:
     void onColorButtonClicked();
     void onWidthSliderChanged(int value);
+    void onRgbaSliderChanged();
+    void onHexEditChanged();
 
 private:
     QColor m_color = QColor("#e94560");
@@ -43,7 +46,24 @@ private:
     QLabel *m_widthLabel;
     QLabel *m_previewLabel;
     
+    // RGBA Sliders
+    QSlider *m_redSlider;
+    QSlider *m_greenSlider;
+    QSlider *m_blueSlider;
+    QSlider *m_alphaSlider;
+    QLabel *m_redLabel;
+    QLabel *m_greenLabel;
+    QLabel *m_blueLabel;
+    QLabel *m_alphaLabel;
+    
+    // Hex input
+    QLineEdit *m_hexEdit;
+    bool m_updatingFromSliders = false;
+    bool m_updatingFromHex = false;
+    
     void updatePreview();
     void updateColorButtonStyle();
+    void updateRgbaSliders();
+    void updateHexEdit();
     void setupUI();
 };
