@@ -59,6 +59,7 @@ public:
     // TODO: Insertar aquí fórmulas de conversión Píxel -> Latitud/Longitud
     GeoCoord getCoordinatesAt(const QPointF &scenePos) const;
     QPointF getScenePosFromCoord(const GeoCoord &coord) const;
+    void toggleProjectionsForSelected(); // Req 3.10
 
     // === ESTILOS ===
     void setStrokeColor(const QColor &color);

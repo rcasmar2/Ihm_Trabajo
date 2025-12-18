@@ -301,14 +301,114 @@ void ChartController::setCalibrationPoints(const QPointF &pixel1, const GeoCoord
 
 void ChartController::setStrokeColor(const QColor &color) {
     m_strokeColor = color;
+
+    // Actualizar elementos seleccionados (Req 3.5)
+    for (QGraphicsItem *item : m_scene->selectedItems()) {
+        if (auto *line = qgraphicsitem_cast<QGraphicsLineItem*>(item)) {
+            QPen p = line->pen();
+            p.setColor(color);
+            line->setPen(p);
+        } else if (auto *path = qgraphicsitem_cast<QGraphicsPathItem*>(item)) {
+            QPen p = path->pen();
+            p.setColor(color);
+            path->setPen(p);
+        } else if (auto *ellipse = qgraphicsitem_cast<QGraphicsEllipseItem*>(item)) {
+            QPen p = ellipse->pen();
+            p.setColor(color);
+            ellipse->setPen(p);
+            ellipse->setBrush(QBrush(color));
+        } else if (auto *text = qgraphicsitem_cast<QGraphicsTextItem*>(item)) {
+            text->setDefaultTextColor(color);
+        }
+    }
 }
 
 void ChartController::setStrokeWidth(int width) {
-    m_strokeWidth = qBound(1, width, 100); // Ampliar rango para texto
+    m_strokeWidth = qBound(1, width, 100);
+
+    // Actualizar elementos seleccionados (Req 3.5)
+    for (QGraphicsItem *item : m_scene->selectedItems()) {
+        if (auto *line = qgraphicsitem_cast<QGraphicsLineItem*>(item)) {
+            QPen p = line->pen();
+            p.setWidth(width);
+            line->setPen(p);
+        } else if (auto *path = qgraphicsitem_cast<QGraphicsPathItem*>(item)) {
+            QPen p = path->pen();
+            p.setWidth(width);
+            path->setPen(p);
+        } else if (auto *ellipse = qgraphicsitem_cast<QGraphicsEllipseItem*>(item)) {
+            // Recalcular tamaño del punto
+            QPen p = ellipse->pen();
+            p.setWidth(width);
+            ellipse->setPen(p);
+            
+            QRectF rect = ellipse->rect();
+            QPointF center = rect.center();
+            double radius = width * 1.5;
+            ellipse->setRect(center.x() - radius, center.y() - radius, radius * 2, radius * 2);
+
+        } else if (auto *text = qgraphicsitem_cast<QGraphicsTextItem*>(item)) {
+            QFont f = text->font();
+            f.setPixelSize(qMax(8, width)); // Usar width como tamaño de fuente aprox
+            text->setFont(f);
+        }
+    }
 }
 
 void ChartController::setFont(const QFont &font) {
     m_font = font;
+
+    // Actualizar elementos seleccionados (Req 3.5)
+    for (QGraphicsItem *item : m_scene->selectedItems()) {
+        if (auto *text = qgraphicsitem_cast<QGraphicsTextItem*>(item)) {
+            QFont f = font;
+            f.setPixelSize(text->font().pixelSize()); // Mantener tamaño actual
+            text->setFont(f);
+        }
+    }
+}
+
+void ChartController::toggleProjectionsForSelected() {
+    QList<QGraphicsItem*> selected = m_scene->selectedItems();
+    if (selected.size() != 1) return;
+
+    QGraphicsItem *item = selected.first();
+    // Solo permitir proyecciones para Puntos (Elipses)
+    auto *pointItem = qgraphicsitem_cast<QGraphicsEllipseItem*>(item);
+    if (!pointItem) return;
+
+    // Verificar si ya tiene proyecciones (buscamos hijos que sean líneas dashed)
+    QList<QGraphicsItem*> children = pointItem->childItems();
+    bool hasProjections = false;
+    for (auto *child : children) {
+        if (child->data(0).toString() == "projection") {
+            hasProjections = true;
+            // Borrar
+            m_scene->removeItem(child);
+            delete child;
+        }
+    }
+    
+    // Si tenía, ya las borramos y salimos (Toggle OFF)
+    if (hasProjections) return;
+
+    // Si no, las creamos (Toggle ON)
+    QPointF center = pointItem->rect().center();
+    QRectF sceneRect = m_scene->sceneRect();
+
+    QPen pen(Qt::black, 2, Qt::DashLine);
+    
+    // Línea vertical (hacia abajo o arriba según convenga, aquí a los ejes bordes)
+    // Asumiremos ejes a la izquierda y abajo o arriba.
+    // Dibujamos línea horizontal hacia la izquierda (eje latitud típico)
+    QGraphicsLineItem *hLine = new QGraphicsLineItem(sceneRect.left(), center.y(), center.x(), center.y(), pointItem);
+    hLine->setPen(pen);
+    hLine->setData(0, "projection");
+
+    // Línea vertical hacia abajo (eje longitud típico)
+    QGraphicsLineItem *vLine = new QGraphicsLineItem(center.x(), center.y(), center.x(), sceneRect.bottom(), pointItem);
+    vLine->setPen(pen);
+    vLine->setData(0, "projection");
 }
 
 // === HERRAMIENTAS OVERLAY (SVG) ===

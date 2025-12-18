@@ -12,6 +12,9 @@ class QLabel;
 class QButtonGroup;
 class StrokeSettingsPopup;
 class QFrame;
+class ProfileController;
+class ProfileView;
+class ResultsView;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -73,6 +76,7 @@ private slots:
     void onUndo();
     void onClearAll();
     void onStartQuiz();
+    void onToggleProjections(); // Req 3.10
 
     // Carta
     void onCoordinatesUpdated(double lat, double lon);
@@ -90,6 +94,7 @@ private slots:
     void onStrokeColorChanged(const QColor &color);
     void onStrokeWidthChanged(int width);
     void showStrokeSettings(QWidget *anchor);
+    void onSelectionChanged(); // NUEVO
 
 private:
     Ui::MainWindow *ui;
@@ -98,6 +103,7 @@ private:
     LoginController *m_loginController;
     RegisterController *m_registerController;
     SessionController *m_sessionController;
+    ProfileController *m_profileController;
 
     // Widgets
     ChartWidget *m_chartWidget;
@@ -108,12 +114,16 @@ private:
     QLabel *m_angleLabel;
     QButtonGroup *m_toolGroup;
     StrokeSettingsPopup *m_strokePopup;
+    ProfileView *m_profileView;
+    ResultsView *m_resultsView;
 
     void setupControllers();
     void setupChartWidget();
     void setupConnections();
     void setupToolbar();
     void setupStatusBar();
+    void setupRegisterValidation(); // New method
+    void setupViews(); // New method
     void showLoginPage();
     void showRegisterPage();
     void showDashboard();

@@ -4,9 +4,13 @@
 #include "controllers/chartcontroller.h"
 #include "controllers/logincontroller.h"
 #include "controllers/registercontroller.h"
+#include "controllers/profilecontroller.h"
 #include "controllers/sessioncontroller.h"
 #include "navigation.h"
 #include "utils/charttypes.h"
+#include "utils/validators.h"
+#include "views/profileview.h"
+#include "views/resultsview.h"
 #include "widgets/chartwidget.h"
 #include "widgets/strokesettingspopup.h"
 
@@ -21,19 +25,23 @@
 #include <QMessageBox>
 #include <QPixmap>
 #include <QUrl>
+#include <QToolButton>
+#include <QMenu>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_loginController(nullptr),
-    m_registerController(nullptr), m_sessionController(nullptr),
+    m_registerController(nullptr), m_sessionController(nullptr), m_profileController(nullptr),
     m_chartWidget(nullptr), m_coordLabel(nullptr), m_zoomLabel(nullptr),
-    m_angleLabel(nullptr), m_toolGroup(nullptr), m_strokePopup(nullptr) {
+    m_angleLabel(nullptr), m_toolGroup(nullptr), m_strokePopup(nullptr), m_profileView(nullptr), m_resultsView(nullptr) {
     ui->setupUi(this);
 
     setupControllers();
     setupChartWidget();
+    setupViews(); // Instantiate new views
     setupToolbar();
     setupStatusBar();
     setupConnections();
+    setupRegisterValidation(); // Setup real-time validation
 
     // Mostrar la página de login al iniciar
     showLoginPage();
@@ -49,7 +57,23 @@ MainWindow::~MainWindow() { delete ui; }
 void MainWindow::setupControllers() {
     m_loginController = new LoginController(this);
     m_registerController = new RegisterController(this);
+    m_registerController = new RegisterController(this);
     m_sessionController = new SessionController(this);
+    m_profileController = new ProfileController(this);
+}
+
+void MainWindow::setupViews() {
+    // Instantiate views
+    m_profileView = new ProfileView(this);
+    m_resultsView = new ResultsView(this);
+
+    // Pass controllers
+    m_profileView->setController(m_profileController);
+    m_resultsView->setController(m_sessionController);
+
+    // Add to StackedWidget
+    ui->stackedWidget->addWidget(m_profileView); // Index 3
+    ui->stackedWidget->addWidget(m_resultsView); // Index 4
 }
 
 void MainWindow::setupChartWidget() {
@@ -127,7 +151,116 @@ void MainWindow::setupToolbar() {
         };
 
     // Navegación
-    setupToolButton(ui->toolPan, ":/resources/icons/hand.svg");
+    
+    // === Botón Mover/Seleccionar (Combo) ===
+    QToolButton *btnMode = new QToolButton(this);
+    btnMode->setPopupMode(QToolButton::MenuButtonPopup);
+    btnMode->setToolTip("Herramienta de Navegación");
+    btnMode->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    btnMode->setMinimumSize(60, 50);
+    // Estilo base
+    btnMode->setStyleSheet(R"(
+        QToolButton { 
+            background-color: #0f3460; 
+            color: white; 
+            border: 2px solid transparent; 
+            border-radius: 12px;
+            padding: 4px;
+        }
+        QToolButton::menu-indicator {
+            image: url(:/resources/icons/triangle_small.svg);
+            subcontrol-origin: padding;
+            subcontrol-position: bottom right;
+            width: 8px;
+            height: 8px;
+            bottom: 4px;
+            right: 4px;
+        }
+        QToolButton:checked {
+            background-color: #e94560;
+            border-color: #ff6b6b;
+        }
+        QToolButton:hover {
+            background-color: #16213e;
+        }
+    )");
+
+    // Menú desplegable
+    QMenu *modeMenu = new QMenu(btnMode);
+    modeMenu->setStyleSheet("QMenu { background-color: #1a1a1a; color: white; border: 1px solid #333; } QMenu::item:selected { background-color: #e94560; }");
+    
+    QAction *actPan = modeMenu->addAction(createWhiteIcon(":/resources/icons/hand.svg"), "Moverse (Mano)");
+    QAction *actSelect = modeMenu->addAction(createWhiteIcon(":/resources/icons/cursor.svg"), "Seleccionar");
+
+    btnMode->setMenu(modeMenu);
+    
+    // Icono inicial
+    btnMode->setIcon(createWhiteIcon(":/resources/icons/hand.svg"));
+    btnMode->setIconSize(QSize(24, 24));
+    
+    // Conexiones del menú
+    connect(actPan, &QAction::triggered, this, [=]() {
+        m_chartWidget->controller()->setTool(ToolMode::Pan);
+        btnMode->setIcon(createWhiteIcon(":/resources/icons/hand.svg"));
+    });
+    
+    connect(actSelect, &QAction::triggered, this, [=]() {
+        m_chartWidget->controller()->setTool(ToolMode::Select);
+        // Si no existe cursor.svg, usar fallback
+        QIcon icon = createWhiteIcon(":/resources/icons/cursor.svg");
+        if (icon.isNull()) {
+            // Fallback visual si no hay icono
+            btnMode->setText("Sel"); 
+        } else {
+            btnMode->setIcon(icon);
+        }
+    });
+
+    // Acción principal del botón (click directo) -> Alternar o mantener actual?
+    // Generalmente repite la última acción o abre menú. Con MenuButtonPopup, el click ejecuta defaultAction.
+    // Vamos a hacer que el click principal active la herramienta que muestra el icono actualmente.
+    // Pero QToolButton::MenuButtonPopup separa el click del menú.
+    connect(btnMode, &QToolButton::clicked, this, [=]() {
+        // Ejecutar la herramienta activa visualmente
+        // Esto requiere saber cuál es estado actual. Lo podemos deducir del controller.
+        ToolMode current = m_chartWidget->controller()->currentTool();
+        if (current == ToolMode::Pan) {
+            m_chartWidget->controller()->setTool(ToolMode::Pan);
+        } else if (current == ToolMode::Select) {
+             m_chartWidget->controller()->setTool(ToolMode::Select);
+        } else {
+            // Si venimos de otra herramienta (ej. Lápiz), volver a Pan por defecto
+            m_chartWidget->controller()->setTool(ToolMode::Pan);
+            btnMode->setIcon(createWhiteIcon(":/resources/icons/hand.svg"));
+        }
+    });
+
+    // Insertar en toolbar (reemplazando toolPan viejo si es posible, o insertando al inicio)
+    if (auto layout = ui->centralwidget->findChild<QVBoxLayout*>("toolbarVLayout")) {
+        // Remover toolPan original del layout si existe
+        layout->removeWidget(ui->toolPan);
+        ui->toolPan->hide(); // Ocultarlo
+        
+        layout->insertWidget(1, btnMode); // Index 1 (tras etiqueta)
+    }
+    
+    // Añadir al grupo para exclusividad visual (aunque el QToolButton no es checkable igual que los otros, 
+    // lo haremos checkable para que se ilumine cuando activas Pan o Select)
+    btnMode->setCheckable(true);
+    btnMode->setChecked(true); // Default Pan
+    
+    // El grupo de herramientas necesita IDs únicos. 
+    // Como Pan y Select son modos distintos, pero comparten botón... esto es complejo para QButtonGroup.
+    // Solución: No añadir este botón al grupo principal de forma estándar, O
+    // gestionar su estado visual manualmente en updateToolButtonStates.
+    // Vamos a gestionarlo manualmente y sacar 'Pan' y 'Select' del grupo automático si da problemas,
+    // pero Select y Pan son ToolModes.
+    // Mejor: asignamos ID Pan al botón. Si estamos en Select, también lo iluminamos?
+    // O mejor, asignamos ID Pan. UpdateToolStates iluminará este botón si mode == Pan.
+    // Si mode == Select, tendremos que iluminarlo también.
+    m_toolGroup->addButton(btnMode, static_cast<int>(ToolMode::Pan)); 
+    // EL ID Select no tendrá botón en el grupo, lo gestionaremos en el switch de updateToolButtonStates.
+
     setupToolButton(ui->toolZoomIn, ":/resources/icons/zoom-in.svg");
     setupToolButton(ui->toolZoomOut, ":/resources/icons/zoom-out.svg");
 
@@ -176,8 +309,10 @@ void MainWindow::setupToolbar() {
             border-radius: 12px;
         }
         QPushButton:pressed { background-color: #e67e22; }
-        QPushButton:hover { background-color: #e67e22; }
+        QPushButton:hover { background-color: #f1c40f; }
     )");
+
+    connect(ui->toolQuiz, &QPushButton::clicked, this, &MainWindow::onStartQuiz);
 
     // Crear popup de configuración de trazo
     m_strokePopup = new StrokeSettingsPopup(this);
@@ -192,6 +327,7 @@ void MainWindow::setupToolbar() {
     connect(m_strokePopup, &StrokeSettingsPopup::fontChanged,
             m_chartWidget->controller(), &ChartController::setFont);
 
+    // ... (rest of connections)
     // Conectar botones de dibujo para mostrar popup al hacer clic (incluso si ya
     // están seleccionados)
     connect(ui->toolPoint, &QPushButton::clicked, this,
@@ -202,6 +338,11 @@ void MainWindow::setupToolbar() {
             [this]() { showStrokeSettings(ui->toolArc); });
     connect(ui->toolText, &QPushButton::clicked, this,
             [this]() { showStrokeSettings(ui->toolText); });
+
+    // === SELECCIÓN (NUEVO) ===
+    connect(m_chartWidget->scene(), &QGraphicsScene::selectionChanged, this, &MainWindow::onSelectionChanged);
+    connect(m_strokePopup, &StrokeSettingsPopup::toggleProjectionsRequested,
+            this, &MainWindow::onToggleProjections);
 
     // === HACER LA TOOLBAR FLOTANTE ===
     // Sacar la toolbar del layout y posicionarla como overlay
@@ -224,6 +365,31 @@ void MainWindow::setupToolbar() {
         }
     )");
 }
+
+void MainWindow::onAngleChanged(double angle) {
+    m_angleLabel->setText(QString("%1°").arg(angle, 0, 'f', 1));
+    m_angleLabel->setVisible(true);
+}
+
+void MainWindow::updateToolButtonStates() {
+    // Actualizar visualmente qué botón está seleccionado
+    ToolMode current = m_chartWidget->controller()->currentTool();
+    int currentId = static_cast<int>(current);
+
+    // Caso especial: Select comparte botón con Pan (ID Pan)
+    if (current == ToolMode::Select) {
+        currentId = static_cast<int>(ToolMode::Pan);
+    }
+
+    QAbstractButton *button = m_toolGroup->button(currentId);
+    if (button) {
+        button->setChecked(true);
+    }
+}
+
+// ... (setupStatusBar, setupConnections, etc.)
+
+
 
 void MainWindow::setupStatusBar() {
     // Etiqueta de coordenadas
@@ -275,7 +441,17 @@ void MainWindow::setupConnections() {
             return;
         }
 
-        m_registerController->registerUser(nick, email, password, birthdate);
+        // Recuperar avatar desde property o usar null
+        QImage avatar;
+        QLabel *preview = ui->registerPage->findChild<QLabel*>("avatarPreviewLabel");
+        if (preview) {
+             QVariant var = preview->property("avatarImage");
+             if (var.isValid()) {
+                 avatar = var.value<QImage>();
+             }
+        }
+        
+        m_registerController->registerUser(nick, email, password, birthdate, avatar);
     });
     connect(ui->backToLoginButton, &QPushButton::clicked, this,
             &MainWindow::onBackToLogin);
@@ -326,6 +502,73 @@ void MainWindow::setupConnections() {
     connect(ui->actionManual, &QAction::triggered, this,
             &MainWindow::onShowManual);
     connect(ui->actionAcercaDe, &QAction::triggered, this, &MainWindow::onAbout);
+    connect(ui->actionAcercaDe, &QAction::triggered, this, &MainWindow::onAbout);
+
+    // === NEW VIEWS CONNECTIONS ===
+    connect(m_profileView, &ProfileView::backRequested, this, &MainWindow::showDashboard);
+    connect(m_resultsView, &ResultsView::backRequested, this, &MainWindow::showDashboard);
+    
+    // Register Avatar Button
+    QPushButton *btn = ui->registerPage->findChild<QPushButton*>("selectAvatarButton");
+    if (btn) {
+       connect(btn, &QPushButton::clicked, this, [this]() {
+           QString fileName = QFileDialog::getOpenFileName(this, "Seleccionar Avatar", "", "Images (*.png *.jpg *.jpeg)");
+           if (!fileName.isEmpty()) {
+               QImage img(fileName);
+               if (!img.isNull()) {
+                   // Scale and show
+                    QLabel *preview = ui->registerPage->findChild<QLabel*>("avatarPreviewLabel");
+                    if (preview) {
+                        preview->setPixmap(QPixmap::fromImage(img).scaled(70, 70, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                        // Store it in a property or member to access it in register?
+                        // Actually RegisterController needs it. 
+                        // For now we set it as a property on the preview label to retrieve it later?
+                        // Better: adding a member `m_tempRegisterAvatar` in MainWindow if needed, or 
+                        // retrieve from pixmap (lossy).
+                        // Let's use property.
+                        preview->setProperty("avatarImage", img);
+                    }
+               }
+           }
+       });
+    }
+
+    // Register Password Toggle
+    QAction *togglePass = ui->registerPasswordEdit->addAction(QIcon(":/resources/icons/eye.svg"), QLineEdit::TrailingPosition);
+    connect(togglePass, &QAction::triggered, this, [this]() {
+        if (ui->registerPasswordEdit->echoMode() == QLineEdit::Password) {
+            ui->registerPasswordEdit->setEchoMode(QLineEdit::Normal);
+        } else {
+            ui->registerPasswordEdit->setEchoMode(QLineEdit::Password);
+        }
+    });
+
+}
+
+void MainWindow::setupRegisterValidation() {
+    auto validateField = [](QLineEdit *edit, QLabel *errorLabel, std::function<ValidationResult(QString)> validator) {
+        QString text = edit->text();
+        ValidationResult result = validator(text);
+        if (result.valid) {
+            edit->setStyleSheet("border: 2px solid #27ae60; background-color: #2a2a2a; color: white; padding: 10px; border-radius: 8px;"); // Green
+            errorLabel->setText("");
+        } else {
+            edit->setStyleSheet("border: 2px solid #e74c3c; background-color: #2a2a2a; color: white; padding: 10px; border-radius: 8px;"); // Red
+            errorLabel->setText(result.errorMessage);
+        }
+    };
+
+    connect(ui->registerNickEdit, &QLineEdit::textChanged, this, [=]() {
+        validateField(ui->registerNickEdit, ui->registerErrorLabel, [](QString s){ return Validators::validateNick(s); });
+    });
+
+    connect(ui->registerEmailEdit, &QLineEdit::textChanged, this, [=]() {
+        validateField(ui->registerEmailEdit, ui->registerErrorLabel, [](QString s){ return Validators::validateEmail(s); });
+    });
+
+    connect(ui->registerPasswordEdit, &QLineEdit::textChanged, this, [=]() {
+        validateField(ui->registerPasswordEdit, ui->registerErrorLabel, [](QString s){ return Validators::validatePassword(s); });
+    });
 }
 
 // === NAVIGATION ===
@@ -396,6 +639,7 @@ void MainWindow::onBackToLogin() { showLoginPage(); }
 
 void MainWindow::onLogout() {
     m_loginController->logout();
+    m_sessionController->endSession(); // Ensure session is saved
     showLoginPage();
 }
 
@@ -562,35 +806,22 @@ void MainWindow::onToolChanged(int toolMode) {
     updateToolButtonStates();
 }
 
-void MainWindow::onAngleChanged(double angle) {
-    m_angleLabel->setText(QString("%1°").arg(angle, 0, 'f', 1));
-    m_angleLabel->setVisible(true);
-}
 
-void MainWindow::updateToolButtonStates() {
-    // Actualizar visualmente qué botón está seleccionado
-    ToolMode current = m_chartWidget->controller()->currentTool();
-    int currentId = static_cast<int>(current);
-
-    QAbstractButton *button = m_toolGroup->button(currentId);
-    if (button) {
-        button->setChecked(true);
-    }
-}
 
 // === MENU SLOTS ===
 
 void MainWindow::onShowStats() {
-    // TODO: Abrir diálogo de estadísticas
-    QMessageBox::information(
-        this, "Estadísticas",
-        "Próximamente: Historial de sesiones y estadísticas.");
+    if (m_sessionController && m_loginController->currentUser()) {
+        ui->stackedWidget->setCurrentWidget(m_resultsView);
+        m_resultsView->loadData(m_loginController->currentUser());
+    }
 }
 
 void MainWindow::onShowProfile() {
-    // TODO: Abrir diálogo de perfil
-    QMessageBox::information(this, "Mi Perfil",
-                             "Próximamente: Editar perfil de usuario.");
+    if (m_loginController->currentUser()) {
+        ui->stackedWidget->setCurrentWidget(m_profileView);
+        m_profileView->loadUser(m_loginController->currentUser());
+    }
 }
 
 void MainWindow::onShowManual() {
@@ -635,7 +866,17 @@ void MainWindow::onAbout() {
         "<p>Práctica de Interacción Humano-Máquina</p>");
 }
 
+void MainWindow::onToggleProjections() {
+    m_chartWidget->controller()->toggleProjectionsForSelected();
+}
+
 // === STROKE SETTINGS ===
+
+void MainWindow::showStrokeSettings(QWidget *anchor) {
+    if (m_strokePopup) {
+        m_strokePopup->showNear(anchor);
+    }
+}
 
 void MainWindow::onStrokeColorChanged(const QColor &color) {
     m_chartWidget->controller()->setStrokeColor(color);
@@ -651,15 +892,57 @@ void MainWindow::onStrokeWidthChanged(int width) {
     m_chartWidget->updateToolIndicator("", color, width, true);
 }
 
-void MainWindow::showStrokeSettings(QWidget *anchor) {
-    if (m_strokePopup) {
-        m_strokePopup->showNear(anchor);
+void MainWindow::onSelectionChanged() {
+    // Actualizar UI del popup si estamos en modo selección o si simplemente hay una selección activa
+    QList<QGraphicsItem*> selected = m_chartWidget->scene()->selectedItems();
+    if (selected.isEmpty()) {
+        m_strokePopup->hide(); 
+        return;
+    }
+
+    // Si estamos en modo selección, mostrar popup automáticamente
+    if (m_chartWidget->controller()->currentTool() == ToolMode::Select) {
+        QGraphicsItem *item = selected.first();
+        
+        // Configurar popup según el item seleccionado
+        bool isText = false;
+        bool isPoint = false;
+        
+        QColor color = Qt::black;
+        int width = 1;
+        
+        if (auto *line = qgraphicsitem_cast<QGraphicsLineItem*>(item)) {
+            color = line->pen().color();
+            width = line->pen().width();
+        } else if (auto *path = qgraphicsitem_cast<QGraphicsPathItem*>(item)) {
+            color = path->pen().color();
+            width = path->pen().width();
+        } else if (auto *ellipse = qgraphicsitem_cast<QGraphicsEllipseItem*>(item)) {
+            color = ellipse->pen().color();
+            width = ellipse->pen().width();
+            isPoint = true;
+        } else if (auto *text = qgraphicsitem_cast<QGraphicsTextItem*>(item)) {
+            color = text->defaultTextColor();
+            width = text->font().pixelSize(); // Usamos pixelSize como grosor/tamaño
+            isText = true;
+        }
+        
+        // Actualizar popup sin emitir señales
+        m_strokePopup->blockSignals(true);
+        m_strokePopup->setColor(color);
+        m_strokePopup->setStrokeWidth(width);
+        m_strokePopup->setTextMode(isText);
+        m_strokePopup->setPointMode(isPoint);
+        m_strokePopup->blockSignals(false);
+        
+        // Mostrar popup cerca del mouse
+        QPoint globalPos = QCursor::pos();
+        m_strokePopup->move(globalPos + QPoint(20, 20));
+        m_strokePopup->show();
+        m_strokePopup->raise();
     }
 }
 
-void MainWindow::updateToolIndicator() {
-    // Delegamos al ChartWidget
-    QColor color = m_chartWidget->controller()->strokeColor();
-    int width = m_chartWidget->controller()->strokeWidth();
-    m_chartWidget->updateToolIndicator("", color, width, true);
-}
+
+
+

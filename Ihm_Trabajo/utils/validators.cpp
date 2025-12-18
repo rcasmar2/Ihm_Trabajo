@@ -8,10 +8,10 @@ ValidationResult Validators::validateNick(const QString &nick) {
     if (nick.length() > 15) {
         return ValidationResult::failure("El nick no puede tener más de 15 caracteres");
     }
-    // Solo caracteres alfanuméricos y guión bajo
-    static QRegularExpression validChars("^[a-zA-Z0-9_]+$");
+    // Allow letters, numbers, underscores AND hyphens
+    static QRegularExpression validChars("^[a-zA-Z0-9_-]+$");
     if (!validChars.match(nick).hasMatch()) {
-        return ValidationResult::failure("El nick solo puede contener letras, números y guión bajo");
+        return ValidationResult::failure("El nick solo puede contener letras, números, guiones y guión bajo");
     }
     return ValidationResult::success();
 }
@@ -27,7 +27,8 @@ ValidationResult Validators::validatePassword(const QString &password) {
     static QRegularExpression hasUpper("[A-Z]");
     static QRegularExpression hasLower("[a-z]");
     static QRegularExpression hasDigit("[0-9]");
-    static QRegularExpression hasSpecial("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]");
+    // Special chars: !@#$%&*()-+=
+    static QRegularExpression hasSpecial("[!@#$%&*()\\-+=]");
 
     if (!hasUpper.match(password).hasMatch()) {
         return ValidationResult::failure("La contraseña debe contener al menos una mayúscula");
@@ -39,7 +40,7 @@ ValidationResult Validators::validatePassword(const QString &password) {
         return ValidationResult::failure("La contraseña debe contener al menos un dígito");
     }
     if (!hasSpecial.match(password).hasMatch()) {
-        return ValidationResult::failure("La contraseña debe contener al menos un carácter especial");
+        return ValidationResult::failure("La contraseña debe contener al menos un carácter especial (!@#$%&*()-+=)");
     }
 
     return ValidationResult::success();

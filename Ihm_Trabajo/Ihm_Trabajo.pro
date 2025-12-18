@@ -22,13 +22,16 @@ SOURCES += \
     controllers/registercontroller.cpp \
     controllers/chartcontroller.cpp \
     controllers/sessioncontroller.cpp \
+    controllers/profilecontroller.cpp \
     widgets/chartwidget.cpp \
     widgets/draggableprotractor.cpp \
     widgets/draggableruler.cpp \
     widgets/strokesettingspopup.cpp \
     utils/validators.cpp \
     lib/navigation.cpp \
-    lib/navigationdao.cpp
+    lib/navigationdao.cpp \
+    views/profileview.cpp \
+    views/resultsview.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -36,10 +39,13 @@ HEADERS += \
     controllers/registercontroller.h \
     controllers/chartcontroller.h \
     controllers/sessioncontroller.h \
+    controllers/profilecontroller.h \
     widgets/chartwidget.h \
     widgets/draggableprotractor.h \
     widgets/draggableruler.h \
     widgets/strokesettingspopup.h \
+    views/profileview.h \
+    views/resultsview.h \
     utils/validators.h \
     utils/charttypes.h \
     lib/include/navigation.h \
@@ -50,7 +56,9 @@ HEADERS += \
 FORMS += \
     mainwindow.ui \
     views/loginview.ui \
-    views/registerview.ui
+    views/registerview.ui \
+    views/profileview.ui \
+    views/resultsview.ui
 
 # Resources
 RESOURCES += \

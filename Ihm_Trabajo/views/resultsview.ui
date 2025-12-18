@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ResultsView</class>
+ <widget class="QWidget" name="ResultsView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>700</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string/>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <property name="topMargin">
+      <number>0</number>
+     </property>
+     <property name="rightMargin">
+      <number>0</number>
+     </property>
+     <property name="bottomMargin">
+      <number>0</number>
+     </property>
+   <!-- HEADER -->
+   <item>
+    <widget class="QFrame" name="headerFrame">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>60</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string>background-color: #1a1a1a; border-bottom: 1px solid #333333;</string>
+     </property>
+     <layout class="QHBoxLayout" name="headerLayout">
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="titleLabel">
+        <property name="text">
+         <string>📈 Mis Resultados</string>
+        </property>
+        <property name="styleSheet">
+         <string>font-size: 20px; font-weight: bold; color: white; border: none;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="headerSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="backToChartButton">
+        <property name="text">
+         <string>Volver a la Carta 🗺️</string>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="styleSheet">
+         <string>
+          QPushButton {
+           background-color: #e94560;
+           color: white;
+           border: none;
+           padding: 8px 16px;
+           border-radius: 6px;
+           font-weight: bold;
+           font-size: 13px;
+          }
+          QPushButton:hover {
+           background-color: #ff6b6b;
+          }
+         </string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <!-- CONTENT -->
+   <item>
+    <layout class="QVBoxLayout" name="contentLayout">
+     <property name="leftMargin">
+      <number>30</number>
+     </property>
+     <property name="topMargin">
+      <number>30</number>
+     </property>
+     <property name="rightMargin">
+      <number>30</number>
+     </property>
+     <property name="bottomMargin">
+      <number>30</number>
+     </property>
+     <property name="spacing">
+      <number>20</number>
+     </property>
+     <!-- FILTER BAR -->
+     <item>
+      <widget class="QFrame" name="filterFrame">
+       <property name="styleSheet">
+        <string>background-color: #1a1a1a; border-radius: 8px; border: 1px solid #333333;</string>
+       </property>
+       <layout class="QHBoxLayout" name="filterLayout">
+         <property name="leftMargin">
+          <number>15</number>
+         </property>
+         <property name="topMargin">
+          <number>10</number>
+         </property>
+         <property name="rightMargin">
+          <number>15</number>
+         </property>
+         <property name="bottomMargin">
+          <number>10</number>
+         </property>
+        <item>
+         <widget class="QLabel" name="lblFrom">
+          <property name="text">
+           <string>Mostrar desde:</string>
+          </property>
+          <property name="styleSheet">
+           <string>color: #cccccc; border: none; font-weight: bold;</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QDateEdit" name="fromDateEdit">
+          <property name="calendarPopup">
+           <bool>true</bool>
+          </property>
+          <property name="displayFormat">
+           <string>dd/MM/yyyy</string>
+          </property>
+          <property name="styleSheet">
+           <string>
+            QDateEdit {
+             background-color: #2a2a2a;
+             color: white;
+             border: 1px solid #444;
+             padding: 5px 10px;
+             border-radius: 4px;
+             text-decoration: none;
+            }
+            QDateEdit::drop-down {
+             subcontrol-origin: padding;
+             subcontrol-position: top right;
+             width: 20px;
+             border-left-width: 0px;
+            }
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="filterSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="refreshButton">
+          <property name="text">
+           <string>Aplicar Filtro</string>
+          </property>
+          <property name="cursor">
+           <cursorShape>PointingHandCursor</cursorShape>
+          </property>
+          <property name="styleSheet">
+           <string>
+            QPushButton {
+             background-color: #3498db;
+             color: white;
+             padding: 6px 15px;
+             border-radius: 4px;
+             font-weight: bold;
+             border: none;
+            }
+            QPushButton:hover {
+             background-color: #5dade2;
+            }
+           </string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <!-- TABLE -->
+     <item>
+      <widget class="QTableWidget" name="resultsTable">
+       <property name="styleSheet">
+        <string>
+         QTableWidget {
+          background-color: #1a1a1a;
+          color: #eeeeee;
+          gridline-color: #333333;
+          border: 1px solid #333333;
+          border-radius: 8px;
+          selection-background-color: #34495e;
+         }
+         QHeaderView::section {
+          background-color: #2a2a2a;
+          color: #ffffff;
+          padding: 8px;
+          border: none;
+          border-bottom: 2px solid #e94560;
+          font-weight: bold;
+         }
+         QTableWidget::item {
+          padding: 8px;
+          border-bottom: 1px solid #222;
+         }
+        </string>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::SingleSelection</enum>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectRows</enum>
+       </property>
+       <property name="alternatingRowColors">
+        <bool>false</bool>
+       </property>
+       <property name="verticalScrollBarPolicy">
+        <enum>Qt::ScrollBarAsNeeded</enum>
+       </property>
+       <attribute name="horizontalHeaderStretchLastSection">
+        <bool>true</bool>
+       </attribute>
+       <column>
+        <property name="text">
+         <string>Fecha y Hora</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Aciertos</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Fallos</string>
+        </property>
+       </column>
+       <column>
+        <property name="text">
+         <string>Nota Global</string>
+        </property>
+       </column>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

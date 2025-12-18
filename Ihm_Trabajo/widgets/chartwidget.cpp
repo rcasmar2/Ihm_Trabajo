@@ -108,6 +108,9 @@ void ChartWidget::mousePressEvent(QMouseEvent *event) {
         m_lastPanPoint = event->pos();
         setCursor(Qt::ClosedHandCursor);
         event->accept();
+    } else if (tool == ToolMode::Select) {
+        // Modo Selección: comportamiento estándar de QGraphicsView
+        QGraphicsView::mousePressEvent(event);
     } else {
         // Delegar al controller para dibujar
         QPointF scenePos = mapToScene(event->pos());

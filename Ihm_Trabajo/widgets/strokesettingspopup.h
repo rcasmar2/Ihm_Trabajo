@@ -33,6 +33,8 @@ signals:
     void colorChanged(const QColor &color);
     void strokeWidthChanged(int width);
     void fontChanged(const QFont &font);
+    void toggleProjectionsRequested(); // NUEVO
+
 
 protected slots:
     void onFontStyleChanged();
@@ -85,10 +87,17 @@ private:
     
 public:
     void setTextMode(bool enabled);
+    void setPointMode(bool enabled); // NUEVO
     
+
 private:    
+
     bool m_updatingFromSliders = false;
     bool m_updatingFromHex = false;
+    
+    // Point Mode
+    QWidget *m_pointOptionsWidget = nullptr; // NUEVO
+    QPushButton *m_projectionsBtn = nullptr; // NUEVO
     
     void updatePreview();
     void updateColorButtonStyle();

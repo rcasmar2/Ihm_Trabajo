@@ -14,15 +14,7 @@
    <string>Patrón de Embarcación de Recreo - Carta Náutica Digital</string>
   </property>
   <property name="styleSheet">
-   <string>
-    QMainWindow { background-color: #0a0a0a; }
-    QMenuBar { background-color: #0d0d0d; color: #ffffff; padding: 5px; border-radius: 0px; }
-    QMenuBar::item { padding: 6px 12px; border-radius: 6px; }
-    QMenuBar::item:selected { background-color: #1a1a1a; }
-    QMenu { background-color: #0d0d0d; color: #ffffff; border: 1px solid #1a1a1a; border-radius: 8px; padding: 4px; }
-    QMenu::item { padding: 6px 20px; border-radius: 4px; }
-    QMenu::item:selected { background-color: #e94560; }
-   </string>
+   <string/>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="centralLayout">
@@ -40,22 +32,13 @@
       <!-- Página 0: Login -->
       <widget class="QWidget" name="loginPage">
        <property name="styleSheet">
-        <string>background-color: #0a0a0a;</string>
+        <string/>
        </property>
        <layout class="QVBoxLayout" name="loginPageLayout">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="margin">
-         <number>0</number>
-        </property>
         <item>
          <spacer name="loginTopSpacer">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
           </property>
          </spacer>
         </item>
@@ -65,9 +48,6 @@
            <spacer name="loginLeftSpacer">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
             </property>
            </spacer>
           </item>
@@ -86,26 +66,7 @@
              </size>
             </property>
             <property name="styleSheet">
-             <string>
-              QWidget#loginFormContainer {
-               background-color: #1a1a1a;
-               border-radius: 16px;
-              }
-              QLineEdit {
-               background-color: #2a2a2a;
-               color: #ffffff;
-               border: 2px solid #333333;
-               border-radius: 8px;
-               padding: 12px;
-               font-size: 14px;
-              }
-              QLineEdit:focus {
-               border-color: #e94560;
-              }
-              QLineEdit::placeholder {
-               color: #888888;
-              }
-             </string>
+             <string/>
             </property>
             <layout class="QVBoxLayout" name="loginFormLayout">
              <property name="spacing">
@@ -115,42 +76,42 @@
               <number>40</number>
              </property>
              <property name="topMargin">
-              <number>60</number>
+              <number>50</number>
              </property>
              <property name="rightMargin">
               <number>40</number>
              </property>
              <property name="bottomMargin">
-              <number>60</number>
+              <number>50</number>
              </property>
              <item>
               <widget class="QLabel" name="loginTitleLabel">
                <property name="text">
-                <string>🚢 Patrón de Embarcación</string>
+                <string>⚓</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
                <property name="styleSheet">
-                <string>font-size: 22px; font-weight: bold; color: #ffffff;</string>
+                <string/>
                </property>
               </widget>
              </item>
              <item>
-              <widget class="QLabel" name="loginSubtitleLabel">
+              <widget class="QLabel" name="loginBrandLabel">
                <property name="text">
-                <string>Iniciar Sesión</string>
+                <string>Patrón Digital</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
                <property name="styleSheet">
-                <string>font-size: 14px; color: #888888;</string>
+                <string/>
                </property>
               </widget>
              </item>
              <item>
-              <spacer name="loginFormTopSpacer">
+              <spacer name="loginSpacer1">
                <property name="orientation">
                 <enum>Qt::Vertical</enum>
                </property>
@@ -165,10 +126,7 @@
              <item>
               <widget class="QLineEdit" name="nickEdit">
                <property name="placeholderText">
-                <string>Nick de usuario</string>
-               </property>
-               <property name="minimumHeight">
-                <number>45</number>
+                <string>Usuario</string>
                </property>
               </widget>
              </item>
@@ -180,9 +138,6 @@
                <property name="echoMode">
                 <enum>QLineEdit::Password</enum>
                </property>
-               <property name="minimumHeight">
-                <number>45</number>
-               </property>
               </widget>
              </item>
              <item>
@@ -191,7 +146,7 @@
                 <string></string>
                </property>
                <property name="styleSheet">
-                <string>color: #e94560; font-size: 12px;</string>
+                <string>color: #e94560; font-size: 12px; border: none;</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -201,54 +156,44 @@
              <item>
               <widget class="QPushButton" name="loginButton">
                <property name="text">
-                <string>Entrar</string>
+                <string>Iniciar Sesión</string>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="minimumHeight">
                 <number>50</number>
                </property>
                <property name="styleSheet">
                 <string>
-                 QPushButton {
-                  background-color: #e94560;
-                  color: white;
-                  font-size: 16px;
-                  font-weight: bold;
-                  border-radius: 8px;
-                  border: none;
-                 }
-                 QPushButton:hover {
-                  background-color: #ff6b6b;
-                 }
-                 QPushButton:pressed {
-                  background-color: #c23a51;
-                 }
-                </string>
+                  QPushButton {
+                   background-color: #e94560;
+                   color: white;
+                   font-size: 16px;
+                   font-weight: bold;
+                   border-radius: 8px;
+                   border: none;
+                  }
+                  QPushButton:hover {
+                   background-color: #ff6b6b;
+                  }
+                 </string>
                </property>
               </widget>
              </item>
              <item>
-              <spacer name="loginFormMiddleSpacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>20</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
               <widget class="QPushButton" name="goToRegisterButton">
                <property name="text">
-                <string>¿No tienes cuenta? Regístrate</string>
+                <string>Crear cuenta nueva</string>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="flat">
                 <bool>true</bool>
                </property>
                <property name="styleSheet">
-                <string>color: #3498db; font-size: 13px;</string>
+                <string>color: #888888; font-size: 12px; border: none;</string>
                </property>
               </widget>
              </item>
@@ -260,9 +205,6 @@
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
-            </property>
            </spacer>
           </item>
          </layout>
@@ -272,9 +214,6 @@
           <property name="orientation">
            <enum>Qt::Vertical</enum>
           </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
-          </property>
          </spacer>
         </item>
        </layout>
@@ -282,34 +221,22 @@
       <!-- Página 1: Register -->
       <widget class="QWidget" name="registerPage">
        <property name="styleSheet">
-        <string>background-color: #0a0a0a;</string>
+        <string/>
        </property>
        <layout class="QVBoxLayout" name="registerPageLayout">
-        <property name="spacing">
-         <number>0</number>
-        </property>
-        <property name="margin">
-         <number>0</number>
-        </property>
         <item>
-         <spacer name="registerTopSpacer">
+         <spacer name="regTop">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
           </property>
          </spacer>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="registerCenterLayout">
+         <layout class="QHBoxLayout" name="regCenter">
           <item>
-           <spacer name="registerLeftSpacer">
+           <spacer name="regLeft">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
             </property>
            </spacer>
           </item>
@@ -317,74 +244,53 @@
            <widget class="QWidget" name="registerFormContainer">
             <property name="minimumSize">
              <size>
-              <width>420</width>
-              <height>620</height>
+              <width>450</width>
+              <height>650</height>
              </size>
             </property>
             <property name="maximumSize">
              <size>
-              <width>420</width>
-              <height>620</height>
+              <width>450</width>
+              <height>650</height>
              </size>
             </property>
             <property name="styleSheet">
-             <string>
-              QWidget#registerFormContainer {
-               background-color: #1a1a1a;
-               border-radius: 16px;
-              }
-              QLineEdit, QDateEdit {
-               background-color: #2a2a2a;
-               color: #ffffff;
-               border: 2px solid #333333;
-               border-radius: 8px;
-               padding: 10px;
-               font-size: 13px;
-              }
-              QLineEdit:focus, QDateEdit:focus {
-               border-color: #27ae60;
-              }
-              QLineEdit::placeholder {
-               color: #888888;
-              }
-              QLabel {
-               color: #cccccc;
-              }
-             </string>
+             <string/>
             </property>
             <layout class="QVBoxLayout" name="registerFormLayout">
              <property name="spacing">
-              <number>12</number>
+              <number>15</number>
              </property>
              <property name="leftMargin">
-              <number>35</number>
+              <number>40</number>
              </property>
              <property name="topMargin">
-              <number>30</number>
+              <number>40</number>
              </property>
              <property name="rightMargin">
-              <number>35</number>
+              <number>40</number>
              </property>
              <property name="bottomMargin">
-              <number>30</number>
+              <number>40</number>
              </property>
              <item>
               <widget class="QLabel" name="registerTitleLabel">
                <property name="text">
-                <string>📝 Crear Cuenta</string>
+                <string>Crear Cuenta</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
                </property>
                <property name="styleSheet">
-                <string>font-size: 22px; font-weight: bold; color: #ffffff;</string>
+                <string/>
                </property>
               </widget>
              </item>
+             <!-- Avatar Section -->
              <item>
-              <layout class="QHBoxLayout" name="avatarCenterLayout">
+              <layout class="QHBoxLayout" name="avatarLayout">
                <item>
-                <spacer name="avatarLeftSp">
+                <spacer name="avl">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
@@ -394,29 +300,29 @@
                 <widget class="QLabel" name="avatarPreviewLabel">
                  <property name="minimumSize">
                   <size>
-                   <width>70</width>
-                   <height>70</height>
+                   <width>80</width>
+                   <height>80</height>
                   </size>
                  </property>
                  <property name="maximumSize">
                   <size>
-                   <width>70</width>
-                   <height>70</height>
+                   <width>80</width>
+                   <height>80</height>
                   </size>
                  </property>
-                 <property name="styleSheet">
-                  <string>background-color: #3a3a3a; border-radius: 35px; font-size: 28px;</string>
-                 </property>
                  <property name="text">
-                  <string>👤</string>
+                  <string>📷</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignCenter</set>
                  </property>
+                 <property name="styleSheet">
+                  <string>background-color: #333; border-radius: 40px; font-size: 24px; border: 1px dashed #555;</string>
+                 </property>
                 </widget>
                </item>
                <item>
-                <spacer name="avatarRightSp">
+                <spacer name="avr">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
@@ -425,35 +331,43 @@
               </layout>
              </item>
              <item>
+              <widget class="QPushButton" name="selectAvatarButton">
+               <property name="text">
+                <string>Seleccionar Avatar</string>
+               </property>
+               <property name="flat">
+                <bool>true</bool>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
+               <property name="styleSheet">
+                <string>color: #3498db; font-size: 12px; border: none;</string>
+               </property>
+              </widget>
+             </item>
+             <!-- Inputs -->
+             <item>
               <widget class="QLineEdit" name="registerNickEdit">
                <property name="placeholderText">
-                <string>Nick (6-15 caracteres)</string>
-               </property>
-               <property name="minimumHeight">
-                <number>42</number>
+                <string>Usuario (6-15 caracteres)</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLineEdit" name="registerEmailEdit">
                <property name="placeholderText">
-                <string>Email</string>
-               </property>
-               <property name="minimumHeight">
-                <number>42</number>
+                <string>Correo electrónico</string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QLineEdit" name="registerPasswordEdit">
                <property name="placeholderText">
-                <string>Contraseña (8-20 caracteres)</string>
+                <string>Contraseña (8-20, A-Z, 0-9, #)</string>
                </property>
                <property name="echoMode">
                 <enum>QLineEdit::Password</enum>
-               </property>
-               <property name="minimumHeight">
-                <number>42</number>
                </property>
               </widget>
              </item>
@@ -465,37 +379,24 @@
                <property name="echoMode">
                 <enum>QLineEdit::Password</enum>
                </property>
-               <property name="minimumHeight">
-                <number>42</number>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="lblBirthReg">
+               <property name="text">
+                <string>Fecha de Nacimiento:</string>
                </property>
               </widget>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="birthdateRowLayout">
-               <item>
-                <widget class="QLabel" name="birthdateLabelReg">
-                 <property name="text">
-                  <string>Fecha de nacimiento:</string>
-                 </property>
-                 <property name="styleSheet">
-                  <string>font-size: 13px;</string>
-                 </property>
-                </widget>
-               </item>
-               <item>
-                <widget class="QDateEdit" name="registerBirthdateEdit">
-                 <property name="minimumHeight">
-                  <number>42</number>
-                 </property>
-                 <property name="calendarPopup">
-                  <bool>true</bool>
-                 </property>
-                 <property name="displayFormat">
-                  <string>dd/MM/yyyy</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <widget class="QDateEdit" name="registerBirthdateEdit">
+               <property name="calendarPopup">
+                <bool>true</bool>
+               </property>
+               <property name="displayFormat">
+                <string>dd/MM/yyyy</string>
+               </property>
+              </widget>
              </item>
              <item>
               <widget class="QLabel" name="registerErrorLabel">
@@ -503,7 +404,7 @@
                 <string></string>
                </property>
                <property name="styleSheet">
-                <string>color: #e94560; font-size: 12px;</string>
+                <string>color: #e94560; font-size: 11px; border: none;</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignCenter</set>
@@ -511,56 +412,46 @@
               </widget>
              </item>
              <item>
-              <spacer name="registerFormSpacer">
-               <property name="orientation">
-                <enum>Qt::Vertical</enum>
-               </property>
-               <property name="sizeHint" stdset="0">
-                <size>
-                 <width>20</width>
-                 <height>10</height>
-                </size>
-               </property>
-              </spacer>
-             </item>
-             <item>
               <widget class="QPushButton" name="registerButton">
                <property name="text">
-                <string>Crear Cuenta</string>
+                <string>Registrarse</string>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="minimumHeight">
-                <number>48</number>
+                <number>45</number>
                </property>
                <property name="styleSheet">
                 <string>
-                 QPushButton {
-                  background-color: #27ae60;
-                  color: white;
-                  font-size: 15px;
-                  font-weight: bold;
-                  border-radius: 8px;
-                  border: none;
-                 }
-                 QPushButton:hover {
-                  background-color: #2ecc71;
-                 }
-                 QPushButton:pressed {
-                  background-color: #1e8449;
-                 }
-                </string>
+                  QPushButton {
+                   background-color: #27ae60;
+                   color: white;
+                   font-size: 15px;
+                   font-weight: bold;
+                   border-radius: 8px;
+                   border: none;
+                  }
+                  QPushButton:hover {
+                   background-color: #2ecc71;
+                  }
+                 </string>
                </property>
               </widget>
              </item>
              <item>
               <widget class="QPushButton" name="backToLoginButton">
                <property name="text">
-                <string>← Volver al Login</string>
+                <string>Ya tengo cuenta</string>
                </property>
                <property name="flat">
                 <bool>true</bool>
                </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
                <property name="styleSheet">
-                <string>color: #888888; font-size: 13px;</string>
+                <string>color: #888; font-size: 12px; border: none;</string>
                </property>
               </widget>
              </item>
@@ -568,24 +459,18 @@
            </widget>
           </item>
           <item>
-           <spacer name="registerRightSpacer">
+           <spacer name="regRight">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Expanding</enum>
             </property>
            </spacer>
           </item>
          </layout>
         </item>
         <item>
-         <spacer name="registerBottomSpacer">
+         <spacer name="regBottom">
           <property name="orientation">
            <enum>Qt::Vertical</enum>
-          </property>
-          <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
           </property>
          </spacer>
         </item>

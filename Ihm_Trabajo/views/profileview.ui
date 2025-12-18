@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ProfileView</class>
+ <widget class="QWidget" name="ProfileView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="styleSheet">
+   <string/>
+  </property>
+  <layout class="QVBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <!-- HEADER -->
+   <item>
+    <widget class="QFrame" name="headerFrame">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>60</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string>background-color: #1a1a1a; border-bottom: 1px solid #333333;</string>
+     </property>
+     <layout class="QHBoxLayout" name="headerLayout">
+      <property name="leftMargin">
+       <number>20</number>
+      </property>
+      <property name="rightMargin">
+       <number>20</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="titleLabel">
+        <property name="text">
+         <string>👤 Mi Perfil</string>
+        </property>
+        <property name="styleSheet">
+         <string>font-size: 20px; font-weight: bold; color: white; border: none;</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="headerSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="backToChartButton">
+        <property name="text">
+         <string>Volver a la Carta 🗺️</string>
+        </property>
+        <property name="cursor">
+         <cursorShape>PointingHandCursor</cursorShape>
+        </property>
+        <property name="styleSheet">
+         <string>
+          QPushButton {
+           background-color: #e94560;
+           color: white;
+           border: none;
+           padding: 8px 16px;
+           border-radius: 6px;
+           font-weight: bold;
+           font-size: 13px;
+          }
+          QPushButton:hover {
+           background-color: #ff6b6b;
+          }
+         </string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <!-- CONTENT CENTERED -->
+   <item>
+    <layout class="QHBoxLayout" name="contentLayout">
+     <item>
+      <spacer name="leftContentSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <!-- CARD CONTAINER -->
+      <widget class="QFrame" name="cardFrame">
+       <property name="minimumSize">
+        <size>
+         <width>450</width>
+         <height>550</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>450</width>
+         <height>600</height>
+        </size>
+       </property>
+       <property name="styleSheet">
+        <string>
+         QFrame#cardFrame {
+          background-color: #1a1a1a;
+          border-radius: 16px;
+          border: 1px solid #333333;
+         }
+         QLabel { color: #cccccc; font-size: 14px; border: none; text-decoration: none; }
+         QLineEdit, QDateEdit {
+          background-color: #2a2a2a;
+          color: white;
+          border: 1px solid #444;
+          border-radius: 8px;
+          padding: 10px;
+          font-size: 13px;
+          text-decoration: none;
+         }
+         QLineEdit:focus, QDateEdit:focus {
+          border-color: #e94560;
+         }
+        </string>
+       </property>
+       <layout class="QVBoxLayout" name="cardLayout">
+        <property name="spacing">
+         <number>15</number>
+        </property>
+         <property name="leftMargin">
+          <number>40</number>
+         </property>
+         <property name="topMargin">
+          <number>40</number>
+         </property>
+         <property name="rightMargin">
+          <number>40</number>
+         </property>
+         <property name="bottomMargin">
+          <number>40</number>
+         </property>
+        <!-- AVATAR -->
+        <item>
+         <layout class="QHBoxLayout" name="avatarLayout">
+          <item>
+           <spacer name="avatarLeft"><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="avatarInnerLayout">
+             <item>
+               <widget class="QLabel" name="avatarLabel">
+                <property name="minimumSize"><size><width>100</width><height>100</height></size></property>
+                <property name="maximumSize"><size><width>100</width><height>100</height></size></property>
+                <property name="styleSheet">
+                 <string>background-color: #333; border-radius: 50px; border: 2px solid #e94560;</string>
+                </property>
+                <property name="text"><string></string></property>
+                <property name="alignment"><set>Qt::AlignCenter</set></property>
+               </widget>
+             </item>
+             <item>
+               <widget class="QPushButton" name="changeAvatarButton">
+                <property name="text"><string>Cambiar Foto</string></property>
+                <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                <property name="flat"><bool>true</bool></property>
+                <property name="styleSheet">
+                 <string>color: #3498db; font-weight: bold; font-size: 12px; border: none; margin-top: 5px;</string>
+                </property>
+               </widget>
+             </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="avatarRight"><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer>
+          </item>
+         </layout>
+        </item>
+        <!-- NICKNAME (READ ONLY) -->
+        <item>
+         <widget class="QLabel" name="nickLabel">
+          <property name="text"><string>@usuario</string></property>
+          <property name="alignment"><set>Qt::AlignCenter</set></property>
+          <property name="styleSheet"><string>font-size: 18px; color: #888; font-weight: bold; margin-bottom: 20px; border: none;</string></property>
+         </widget>
+        </item>
+        <!-- FORM -->
+        <item>
+         <widget class="QLabel" name="lblEmail"><property name="text"><string>Email</string></property></widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="emailEdit"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblBirth"><property name="text"><string>Fecha de Nacimiento</string></property></widget>
+        </item>
+        <item>
+         <widget class="QDateEdit" name="birthdateEdit">
+          <property name="calendarPopup"><bool>true</bool></property>
+          <property name="displayFormat"><string>dd/MM/yyyy</string></property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblNewPass"><property name="text"><string>Nueva Contraseña (Opcional)</string></property></widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="passwordEdit">
+          <property name="placeholderText"><string>••••••••</string></property>
+          <property name="echoMode"><enum>QLineEdit::Password</enum></property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="formSpacer"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property></spacer>
+        </item>
+        <!-- ACTIONS -->
+        <item>
+         <widget class="QPushButton" name="saveButton">
+          <property name="text"><string>Guardar Cambios</string></property>
+          <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+          <property name="minimumHeight"><number>45</number></property>
+          <property name="styleSheet">
+           <string>
+            QPushButton {
+             background-color: #27ae60;
+             color: white;
+             font-weight: bold;
+             border-radius: 8px;
+             font-size: 15px;
+             border: none;
+            }
+            QPushButton:hover {
+             background-color: #2ecc71;
+            }
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="cancelButton">
+          <property name="text"><string>Cancelar</string></property>
+          <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+          <property name="flat"><bool>true</bool></property>
+          <property name="styleSheet"><string>color: #888; margin-top: 10px; border: none;</string></property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <spacer name="rightContentSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <spacer name="bottomSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

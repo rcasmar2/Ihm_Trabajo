@@ -17,7 +17,7 @@
 #include <QComboBox> // NECESARIO
 
 StrokeSettingsPopup::StrokeSettingsPopup(QWidget *parent)
-    : QWidget(parent, Qt::Popup | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint)
+    : QWidget(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::WindowStaysOnTopHint)
 {
     // Hacer el fondo de la ventana transparente para mostrar esquinas redondeadas
     setAttribute(Qt::WA_TranslucentBackground);
@@ -71,6 +71,40 @@ void StrokeSettingsPopup::setupUI() {
     separator1->setFrameShape(QFrame::HLine);
     separator1->setStyleSheet("background-color: #2a2a2a; max-height: 1px;");
     mainLayout->addWidget(separator1);
+
+    // === SECCION PUNTO (MOVIDA ARRIBA) ===
+    m_pointOptionsWidget = new QWidget(this);
+    QVBoxLayout *pointLayout = new QVBoxLayout(m_pointOptionsWidget);
+    pointLayout->setContentsMargins(0,0,0,0);
+    
+    // Botón Proyecciones (Arriba del todo en opciones de punto)
+    m_projectionsBtn = new QPushButton("Mostrar Proyecciones", m_pointOptionsWidget);
+    m_projectionsBtn->setCursor(Qt::PointingHandCursor);
+    m_projectionsBtn->setCheckable(true);
+    // Estilo actualizado: Sin hover, activo acorde a UI (#e94560)
+    m_projectionsBtn->setStyleSheet(R"(
+        QPushButton {
+            background-color: #2a2a2a;
+            color: #ccc;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            border: 1px solid transparent;
+        }
+        QPushButton:checked {
+            background-color: #e94560;
+            color: white;
+            border: 1px solid #ff6b6b;
+        }
+    )");
+    connect(m_projectionsBtn, &QPushButton::clicked, this, &StrokeSettingsPopup::toggleProjectionsRequested);
+    pointLayout->addWidget(m_projectionsBtn);
+    
+    // Espacio extra
+    pointLayout->addSpacing(6);
+
+    mainLayout->addWidget(m_pointOptionsWidget);
+    m_pointOptionsWidget->setVisible(false); // Default hidden
 
     // === SECCIÓN COLOR ===
     QLabel *colorLabel = new QLabel("Color", this);
@@ -286,6 +320,8 @@ void StrokeSettingsPopup::setupUI() {
     mainLayout->addWidget(m_textOptionsWidget);
     m_textOptionsWidget->setVisible(false); // Default hidden
 
+
+
     // === SECCIÓN GROSOR ===
     m_widthTitleLabel = new QLabel("Grosor", this);
     m_widthTitleLabel->setStyleSheet("color: #7f8c8d; font-size: 11px; font-weight: bold; background: transparent; text-transform: uppercase;");
@@ -364,6 +400,14 @@ void StrokeSettingsPopup::setupUI() {
     setFixedWidth(340);
     adjustSize();
 }
+
+void StrokeSettingsPopup::setPointMode(bool enabled) {
+    if (m_pointOptionsWidget) {
+        m_pointOptionsWidget->setVisible(enabled);
+        adjustSize();
+    }
+}
+// (Mantener el resto igual hasta setTextMode)
 
 void StrokeSettingsPopup::updateColorButtonStyle() {
     m_colorButton->setStyleSheet(QString(

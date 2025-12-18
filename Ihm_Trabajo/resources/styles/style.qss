@@ -1,0 +1,228 @@
+/* ==========================================================================
+   Global Styles
+   ========================================================================== */
+
+/* Default text and background for the application */
+QWidget {
+    font-family: 'Segoe UI', sans-serif;
+    color: #ffffff;
+    selection-background-color: #e94560;
+    selection-color: #ffffff;
+    outline: none; /* Removes focus outline artifacts */
+}
+
+/* Ensure transparent background for basic widgets to avoid blocking parent background */
+QLabel, QCheckBox, QRadioButton, QGroupBox {
+    background: transparent;
+    text-decoration: none;
+    border: none;
+}
+
+/* Headers */
+QLabel[header="true"] {
+    font-size: 32px;
+    font-weight: bold;
+    color: #e94560;
+}
+
+/* Subheaders */
+QLabel[subheader="true"] {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   Input Fields (QLineEdit, QDateEdit, QSpinBox)
+   ========================================================================== */
+QLineEdit, QDateEdit, QSpinBox, QComboBox {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+QLineEdit:focus, QDateEdit:focus, QSpinBox:focus, QComboBox:focus {
+    border: 1px solid #e94560;
+    background-color: #2d2d2d;
+}
+
+/* QDateEdit Specifics */
+QDateEdit::drop-down, QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 25px;
+    border-left-width: 0px;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    background: transparent;
+}
+
+QDateEdit::down-arrow, QComboBox::down-arrow {
+    image: url(:/icons/calendar.svg); /* Or a standard arrow */
+    width: 16px; 
+    height: 16px;
+}
+
+/* ==========================================================================
+   Buttons (QPushButton)
+   ========================================================================== */
+QPushButton {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    border: 1px solid #444444;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+QPushButton:hover {
+    background-color: #333333;
+    border-color: #666666;
+}
+
+QPushButton:pressed {
+    background-color: #000000;
+}
+
+QPushButton:disabled {
+    background-color: #111111;
+    color: #555555;
+    border-color: #222222;
+}
+
+/* Primary Action Button (Accent Color) */
+QPushButton[class="primary"] {
+    background-color: #e94560;
+    border: none;
+    font-weight: bold;
+}
+
+QPushButton[class="primary"]:hover {
+    background-color: #ff6b6b;
+}
+
+/* Secondary/Ghost Button */
+QPushButton[class="ghost"] {
+    background-color: transparent;
+    border: none;
+    color: #888888;
+}
+
+QPushButton[class="ghost"]:hover {
+    color: #ffffff;
+}
+
+/* ==========================================================================
+   Specific Views (Scoped Backgrounds)
+   ========================================================================== */
+
+/* Login & Register Pages - Dark Background */
+QWidget#loginPage, QWidget#registerPage {
+    background-color: #0d0d0d;
+}
+
+/* Forms Containers */
+QWidget#loginFormContainer, QWidget#registerFormContainer {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 20px;
+}
+
+/* Profile View */
+QWidget#ProfileView {
+    background-color: #0d0d0d;
+}
+
+QFrame#cardFrame {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 16px;
+}
+
+/* Results View */
+QWidget#ResultsView {
+    background-color: #0d0d0d;
+}
+
+/* Table Widget */
+QTableWidget {
+    background-color: #1a1a1a;
+    color: #eeeeee;
+    gridline-color: #333333;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    selection-background-color: #34495e;
+}
+
+QHeaderView::section {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    padding: 8px;
+    border: none;
+    border-bottom: 2px solid #e94560;
+    font-weight: bold;
+}
+
+QTableWidget::item {
+    padding: 8px;
+    border-bottom: 1px solid #222222;
+}
+
+/* ==========================================================================
+   Clipping Fixes & Layout
+   ========================================================================== */
+
+/* Login Title (Icon) */
+QLabel#loginTitleLabel {
+    font-size: 48px; 
+    margin-bottom: 10px;
+    min-height: 80px; /* Prevent clipping */
+    padding: 10px;
+    background: transparent;
+}
+
+/* Login Brand */
+QLabel#loginBrandLabel {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    min-height: 40px;
+    padding: 5px;
+    background: transparent;
+}
+
+/* Register Title */
+QLabel#registerTitleLabel {
+    font-size: 24px;
+    font-weight: bold;
+    color: white;
+    min-height: 40px;
+    padding: 5px;
+    background: transparent;
+}
+
+/* Error Labels */
+QLabel#loginErrorLabel, QLabel#registerErrorLabel {
+    color: #e94560;
+    font-size: 12px;
+    min-height: 20px;
+    background: transparent;
+}
+
+/* Avatar Preview Circle */
+QLabel#avatarPreviewLabel {
+    min-width: 80px;
+    min-height: 80px;
+    max-width: 80px;
+    max-height: 80px;
+    border-radius: 40px;
+    border: 2px dashed #444444;
+    background: transparent;
+    padding: 0px;
+    qproperty-alignment: AlignCenter;
+}
