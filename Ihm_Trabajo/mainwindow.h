@@ -21,7 +21,7 @@ QT_END_NAMESPACE
 
 /**
  * MainWindow - Ventana principal de la aplicación
- * 
+ *
  * Gestiona:
  * - Navegación entre vistas (login, registro, dashboard)
  * - Toolbar de herramientas con ToggleGroup
@@ -85,7 +85,7 @@ private slots:
     void onShowProfile();
     void onShowManual();
     void onAbout();
-    
+
     // Stroke Settings
     void onStrokeColorChanged(const QColor &color);
     void onStrokeWidthChanged(int width);

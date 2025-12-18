@@ -1,40 +1,32 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include "controllers/chartcontroller.h"
 #include "controllers/logincontroller.h"
 #include "controllers/registercontroller.h"
 #include "controllers/sessioncontroller.h"
-#include "controllers/chartcontroller.h"
+#include "navigation.h"
+#include "utils/charttypes.h"
 #include "widgets/chartwidget.h"
 #include "widgets/strokesettingspopup.h"
-#include "utils/charttypes.h"
-#include "navigation.h"
 
-#include <QLabel>
 #include <QButtonGroup>
-#include <QMessageBox>
-#include <QFileDialog>
 #include <QDesktopServices>
-#include <QUrl>
+#include <QFileDialog>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QIcon>
-#include <QPixmap>
 #include <QImage>
+#include <QLabel>
+#include <QMessageBox>
+#include <QPixmap>
+#include <QUrl>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-    , m_loginController(nullptr)
-    , m_registerController(nullptr)
-    , m_sessionController(nullptr)
-    , m_chartWidget(nullptr)
-    , m_coordLabel(nullptr)
-    , m_zoomLabel(nullptr)
-    , m_angleLabel(nullptr)
-    , m_toolGroup(nullptr)
-    , m_strokePopup(nullptr)
-{
+    : QMainWindow(parent), ui(new Ui::MainWindow), m_loginController(nullptr),
+    m_registerController(nullptr), m_sessionController(nullptr),
+    m_chartWidget(nullptr), m_coordLabel(nullptr), m_zoomLabel(nullptr),
+    m_angleLabel(nullptr), m_toolGroup(nullptr), m_strokePopup(nullptr) {
     ui->setupUi(this);
 
     setupControllers();
@@ -43,18 +35,14 @@ MainWindow::MainWindow(QWidget *parent)
     setupStatusBar();
     setupConnections();
 
-    // Iniciar mostrando el dashboard directamente para debug
-    // En producción: showLoginPage()
-    showDashboard();
-    
+    // Mostrar la página de login al iniciar
+    showLoginPage();
+
     // Inicializar indicador con la herramienta por defecto (Pan -> "Moverse")
     onToolChanged(static_cast<int>(ToolMode::Pan));
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
+MainWindow::~MainWindow() { delete ui; }
 
 // === SETUP ===
 
@@ -81,20 +69,22 @@ void MainWindow::setupToolbar() {
     m_toolGroup->addButton(ui->toolArc, static_cast<int>(ToolMode::Arc));
     m_toolGroup->addButton(ui->toolText, static_cast<int>(ToolMode::Text));
     m_toolGroup->addButton(ui->toolEraser, static_cast<int>(ToolMode::Eraser));
-    m_toolGroup->addButton(ui->toolProtractor, static_cast<int>(ToolMode::Protractor));
+    m_toolGroup->addButton(ui->toolProtractor,
+                           static_cast<int>(ToolMode::Protractor));
     m_toolGroup->addButton(ui->toolRuler, static_cast<int>(ToolMode::Ruler));
 
     // Seleccionar Pan por defecto
     ui->toolPan->setChecked(true);
-    
+
     // === FUNCIÓN PARA CREAR ICONOS BLANCOS ===
     auto createWhiteIcon = [](const QString &iconPath) -> QIcon {
         QPixmap pixmap(iconPath);
-        if (pixmap.isNull()) return QIcon(iconPath);
-        
+        if (pixmap.isNull())
+            return QIcon(iconPath);
+
         // Crear una imagen con el pixmap
         QImage img = pixmap.toImage();
-        
+
         // Colorear todos los píxeles negros/oscuros a blanco
         for (int y = 0; y < img.height(); ++y) {
             for (int x = 0; x < img.width(); ++x) {
@@ -107,120 +97,129 @@ void MainWindow::setupToolbar() {
         }
         return QIcon(QPixmap::fromImage(img));
     };
-    
+
     // === CONFIGURAR BOTONES CON ICONOS BLANCOS ===
-    auto setupToolButton = [&createWhiteIcon](QPushButton *btn, const QString &iconPath, const QString &bgColor = "#1a1a1a") {
-        btn->setText("");
-        btn->setIcon(createWhiteIcon(iconPath));
-        btn->setIconSize(QSize(24, 24));
-        QString style = QString(R"(
-            QPushButton { 
-                background-color: %1; 
-                border-radius: 12px; 
+    auto setupToolButton =
+        [&createWhiteIcon](QPushButton *btn, const QString &iconPath,
+                           const QString &bgColor = "#1a1a1a") {
+            btn->setText("");
+            btn->setIcon(createWhiteIcon(iconPath));
+            btn->setIconSize(QSize(24, 24));
+            QString style = QString(R"(
+            QPushButton {
+                background-color: %1;
+                border-radius: 12px;
                 border: 2px solid transparent;
-            } 
-            QPushButton:checked { 
-                background-color: #e94560; 
+            }
+            QPushButton:checked {
+                background-color: #e94560;
                 border-color: #ff6b6b;
             }
-            QPushButton:hover:!checked { 
-                background-color: #2a2a2a; 
+            QPushButton:hover:!checked {
+                background-color: #2a2a2a;
             }
-            QPushButton:pressed { 
-                background-color: #e94560; 
+            QPushButton:pressed {
+                background-color: #e94560;
             }
-        )").arg(bgColor);
-        btn->setStyleSheet(style);
-    };
-    
+        )")
+                                .arg(bgColor);
+            btn->setStyleSheet(style);
+        };
+
     // Navegación
     setupToolButton(ui->toolPan, ":/resources/icons/hand.svg");
     setupToolButton(ui->toolZoomIn, ":/resources/icons/zoom-in.svg");
     setupToolButton(ui->toolZoomOut, ":/resources/icons/zoom-out.svg");
-    
+
     // Dibujo
     setupToolButton(ui->toolPoint, ":/resources/icons/point.svg");
     setupToolButton(ui->toolLine, ":/resources/icons/line.svg");
     setupToolButton(ui->toolArc, ":/resources/icons/arc.svg");
     setupToolButton(ui->toolText, ":/resources/icons/text.svg");
     setupToolButton(ui->toolEraser, ":/resources/icons/eraser.svg");
-    
+
     // Medición (verde cuando seleccionado)
-    auto setupMeasureButton = [&createWhiteIcon](QPushButton *btn, const QString &iconPath) {
+    auto setupMeasureButton = [&createWhiteIcon](QPushButton *btn,
+                                                 const QString &iconPath) {
         btn->setText("");
         btn->setIcon(createWhiteIcon(iconPath));
         btn->setIconSize(QSize(24, 24));
         btn->setStyleSheet(R"(
-            QPushButton { 
-                background-color: #1a1a1a; 
-                border-radius: 12px; 
+            QPushButton {
+                background-color: #1a1a1a;
+                border-radius: 12px;
                 border: 2px solid transparent;
-            } 
-            QPushButton:checked { 
-                background-color: #27ae60; 
+            }
+            QPushButton:checked {
+                background-color: #27ae60;
                 border-color: #2ecc71;
             }
-            QPushButton:hover:!checked { 
-                background-color: #2a2a2a; 
+            QPushButton:hover:!checked {
+                background-color: #2a2a2a;
             }
         )");
     };
     setupMeasureButton(ui->toolProtractor, ":/resources/icons/transportador.svg");
     setupMeasureButton(ui->toolRuler, ":/resources/icons/ruler.svg");
-    
+
     // Acciones
     setupToolButton(ui->toolUndo, ":/resources/icons/undo-2.svg");
     setupToolButton(ui->toolClear, ":/resources/icons/trash-2.svg");
-    
+
     // Quiz (naranja con icono negro que contrasta bien)
     ui->toolQuiz->setText("");
     ui->toolQuiz->setIcon(QIcon(":/resources/icons/quiz.svg"));
     ui->toolQuiz->setIconSize(QSize(24, 24));
     ui->toolQuiz->setStyleSheet(R"(
-        QPushButton { 
-            background-color: #f39c12; 
+        QPushButton {
+            background-color: #f39c12;
             border-radius: 12px;
-        } 
+        }
         QPushButton:pressed { background-color: #e67e22; }
         QPushButton:hover { background-color: #e67e22; }
     )");
-    
+
     // Crear popup de configuración de trazo
     m_strokePopup = new StrokeSettingsPopup(this);
     m_strokePopup->setColor(m_chartWidget->controller()->strokeColor());
     m_strokePopup->setStrokeWidth(m_chartWidget->controller()->strokeWidth());
-    
+
     // Conectar cambios del popup al controller
-    connect(m_strokePopup, &StrokeSettingsPopup::colorChanged,
-            this, &MainWindow::onStrokeColorChanged);
-    connect(m_strokePopup, &StrokeSettingsPopup::strokeWidthChanged,
-            this, &MainWindow::onStrokeWidthChanged);
+    connect(m_strokePopup, &StrokeSettingsPopup::colorChanged, this,
+            &MainWindow::onStrokeColorChanged);
+    connect(m_strokePopup, &StrokeSettingsPopup::strokeWidthChanged, this,
+            &MainWindow::onStrokeWidthChanged);
     connect(m_strokePopup, &StrokeSettingsPopup::fontChanged,
             m_chartWidget->controller(), &ChartController::setFont);
-    
-    // Conectar botones de dibujo para mostrar popup al hacer clic (incluso si ya están seleccionados)
-    connect(ui->toolPoint, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolPoint); });
-    connect(ui->toolLine, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolLine); });
-    connect(ui->toolArc, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolArc); });
-    connect(ui->toolText, &QPushButton::clicked, this, [this]() { showStrokeSettings(ui->toolText); });
-    
+
+    // Conectar botones de dibujo para mostrar popup al hacer clic (incluso si ya
+    // están seleccionados)
+    connect(ui->toolPoint, &QPushButton::clicked, this,
+            [this]() { showStrokeSettings(ui->toolPoint); });
+    connect(ui->toolLine, &QPushButton::clicked, this,
+            [this]() { showStrokeSettings(ui->toolLine); });
+    connect(ui->toolArc, &QPushButton::clicked, this,
+            [this]() { showStrokeSettings(ui->toolArc); });
+    connect(ui->toolText, &QPushButton::clicked, this,
+            [this]() { showStrokeSettings(ui->toolText); });
+
     // === HACER LA TOOLBAR FLOTANTE ===
     // Sacar la toolbar del layout y posicionarla como overlay
     ui->toolbarScrollArea->setParent(ui->dashboardPage);
     ui->toolbarScrollArea->raise();
-    
+
     // Posicionar la toolbar flotante
     ui->toolbarScrollArea->move(16, 8);
-    
+
     // Aplicar estilo flotante con sombra sutil
     ui->toolbarScrollArea->setStyleSheet(R"(
-        QScrollArea { 
-            background-color: #0d0d0d; 
-            border: none; 
+        QScrollArea {
+            background-color: #0d0d0d;
+            border: none;
             border-radius: 16px;
         }
-        QWidget#toolbarContent { 
-            background-color: #0d0d0d; 
+        QWidget#toolbarContent {
+            background-color: #0d0d0d;
             border-radius: 16px;
         }
     )");
@@ -230,15 +229,16 @@ void MainWindow::setupStatusBar() {
     // Etiqueta de coordenadas
     m_coordLabel = new QLabel("--°--'--\"N --°--'--\"W", this);
     m_coordLabel->setStyleSheet("color: #e0e0e0; padding: 0 15px;");
-    
+
     // Etiqueta de ángulo (transportador)
     m_angleLabel = new QLabel("", this);
     m_angleLabel->setStyleSheet("color: #27ae60; padding: 0 15px;");
     m_angleLabel->setVisible(false);
-    
+
     // Etiqueta de zoom
     m_zoomLabel = new QLabel("100%", this);
-    m_zoomLabel->setStyleSheet("color: #3498db; font-weight: bold; padding: 0 15px;");
+    m_zoomLabel->setStyleSheet(
+        "color: #3498db; font-weight: bold; padding: 0 15px;");
 
     ui->statusbar->addWidget(m_coordLabel, 1);
     ui->statusbar->addWidget(m_angleLabel);
@@ -246,27 +246,55 @@ void MainWindow::setupStatusBar() {
 }
 
 void MainWindow::setupConnections() {
+    // === Login UI ===
+    connect(ui->loginButton, &QPushButton::clicked, this, [this]() {
+        QString nick = ui->nickEdit->text();
+        QString password = ui->passwordEdit->text();
+        m_loginController->login(nick, password);
+    });
+    connect(ui->goToRegisterButton, &QPushButton::clicked, this,
+            &MainWindow::onShowRegister);
+
     // === Login Controller ===
-    connect(m_loginController, &LoginController::loginSuccessful,
-            this, &MainWindow::onLoginSuccessful);
-    connect(m_loginController, &LoginController::loginFailed,
-            this, &MainWindow::onLoginFailed);
+    connect(m_loginController, &LoginController::loginSuccessful, this,
+            &MainWindow::onLoginSuccessful);
+    connect(m_loginController, &LoginController::loginFailed, this,
+            &MainWindow::onLoginFailed);
+
+    // === Register UI ===
+    connect(ui->registerButton, &QPushButton::clicked, this, [this]() {
+        QString nick = ui->registerNickEdit->text();
+        QString email = ui->registerEmailEdit->text();
+        QString password = ui->registerPasswordEdit->text();
+        QString confirmPassword = ui->registerConfirmPasswordEdit->text();
+        QDate birthdate = ui->registerBirthdateEdit->date();
+
+        // Validación básica
+        if (password != confirmPassword) {
+            ui->registerErrorLabel->setText("Las contraseñas no coinciden");
+            return;
+        }
+
+        m_registerController->registerUser(nick, email, password, birthdate);
+    });
+    connect(ui->backToLoginButton, &QPushButton::clicked, this,
+            &MainWindow::onBackToLogin);
 
     // === Register Controller ===
     connect(m_registerController, &RegisterController::registrationSuccessful,
             this, &MainWindow::onRegistrationSuccessful);
-    connect(m_registerController, &RegisterController::registrationFailed,
-            this, &MainWindow::onRegistrationFailed);
+    connect(m_registerController, &RegisterController::registrationFailed, this,
+            &MainWindow::onRegistrationFailed);
 
     // === Chart Controller ===
     connect(m_chartWidget->controller(), &ChartController::coordinatesUpdated,
             this, &MainWindow::onCoordinatesUpdated);
-    connect(m_chartWidget->controller(), &ChartController::zoomChanged,
-            this, &MainWindow::onZoomChanged);
-    connect(m_chartWidget->controller(), &ChartController::toolChanged,
-            this, [this](ToolMode mode) { onToolChanged(static_cast<int>(mode)); });
-    connect(m_chartWidget->controller(), &ChartController::angleChanged,
-            this, &MainWindow::onAngleChanged);
+    connect(m_chartWidget->controller(), &ChartController::zoomChanged, this,
+            &MainWindow::onZoomChanged);
+    connect(m_chartWidget->controller(), &ChartController::toolChanged, this,
+            [this](ToolMode mode) { onToolChanged(static_cast<int>(mode)); });
+    connect(m_chartWidget->controller(), &ChartController::angleChanged, this,
+            &MainWindow::onAngleChanged);
 
     // === Tool Group ===
     connect(m_toolGroup, &QButtonGroup::idClicked, this, [this](int id) {
@@ -282,15 +310,21 @@ void MainWindow::setupConnections() {
 
     // === Menu Actions ===
     connect(ui->actionSalir, &QAction::triggered, this, &QMainWindow::close);
-    connect(ui->actionCerrarSesion, &QAction::triggered, this, &MainWindow::onLogout);
+    connect(ui->actionCerrarSesion, &QAction::triggered, this,
+            &MainWindow::onLogout);
     connect(ui->actionDeshacer, &QAction::triggered, this, &MainWindow::onUndo);
-    connect(ui->actionLimpiar, &QAction::triggered, this, &MainWindow::onClearAll);
+    connect(ui->actionLimpiar, &QAction::triggered, this,
+            &MainWindow::onClearAll);
     connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::onZoomIn);
     connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::onZoomOut);
-    connect(ui->actionZoomReset, &QAction::triggered, this, &MainWindow::onZoomReset);
-    connect(ui->actionEstadisticas, &QAction::triggered, this, &MainWindow::onShowStats);
-    connect(ui->actionPerfil, &QAction::triggered, this, &MainWindow::onShowProfile);
-    connect(ui->actionManual, &QAction::triggered, this, &MainWindow::onShowManual);
+    connect(ui->actionZoomReset, &QAction::triggered, this,
+            &MainWindow::onZoomReset);
+    connect(ui->actionEstadisticas, &QAction::triggered, this,
+            &MainWindow::onShowStats);
+    connect(ui->actionPerfil, &QAction::triggered, this,
+            &MainWindow::onShowProfile);
+    connect(ui->actionManual, &QAction::triggered, this,
+            &MainWindow::onShowManual);
     connect(ui->actionAcercaDe, &QAction::triggered, this, &MainWindow::onAbout);
 }
 
@@ -301,9 +335,7 @@ void MainWindow::showLoginPage() {
     ui->menuUsuario->setEnabled(false);
 }
 
-void MainWindow::showRegisterPage() {
-    ui->stackedWidget->setCurrentIndex(1);
-}
+void MainWindow::showRegisterPage() { ui->stackedWidget->setCurrentIndex(1); }
 
 void MainWindow::showDashboard() {
     ui->stackedWidget->setCurrentIndex(2);
@@ -324,9 +356,7 @@ void MainWindow::loadChart() {
 
 // === LOGIN SLOTS ===
 
-void MainWindow::onLoginClicked() {
-    showDashboard();
-}
+void MainWindow::onLoginClicked() { showDashboard(); }
 
 void MainWindow::onLoginSuccessful(User *user) {
     Q_UNUSED(user)
@@ -334,31 +364,33 @@ void MainWindow::onLoginSuccessful(User *user) {
 }
 
 void MainWindow::onLoginFailed(const QString &reason) {
-    QMessageBox::warning(this, "Error de Login", reason);
+    ui->loginErrorLabel->setText(reason);
 }
 
-void MainWindow::onShowRegister() {
-    showRegisterPage();
-}
+void MainWindow::onShowRegister() { showRegisterPage(); }
 
 // === REGISTER SLOTS ===
 
-void MainWindow::onRegisterClicked() {
-}
+void MainWindow::onRegisterClicked() {}
 
 void MainWindow::onRegistrationSuccessful() {
-    QMessageBox::information(this, "Registro Exitoso",
-                             "Tu cuenta ha sido creada. Ya puedes iniciar sesión.");
+    QMessageBox::information(
+        this, "Registro Exitoso",
+        "Tu cuenta ha sido creada. Ya puedes iniciar sesión.");
+    // Limpiar campos del formulario de registro
+    ui->registerNickEdit->clear();
+    ui->registerEmailEdit->clear();
+    ui->registerPasswordEdit->clear();
+    ui->registerConfirmPasswordEdit->clear();
+    ui->registerErrorLabel->clear();
     showLoginPage();
 }
 
 void MainWindow::onRegistrationFailed(const QString &reason) {
-    QMessageBox::warning(this, "Error de Registro", reason);
+    ui->registerErrorLabel->setText(reason);
 }
 
-void MainWindow::onBackToLogin() {
-    showLoginPage();
-}
+void MainWindow::onBackToLogin() { showLoginPage(); }
 
 // === SESSION SLOTS ===
 
@@ -373,17 +405,11 @@ void MainWindow::onToolPanClicked() {
     m_chartWidget->controller()->setTool(ToolMode::Pan);
 }
 
-void MainWindow::onZoomIn() {
-    m_chartWidget->controller()->zoomIn();
-}
+void MainWindow::onZoomIn() { m_chartWidget->controller()->zoomIn(); }
 
-void MainWindow::onZoomOut() {
-    m_chartWidget->controller()->zoomOut();
-}
+void MainWindow::onZoomOut() { m_chartWidget->controller()->zoomOut(); }
 
-void MainWindow::onZoomReset() {
-    m_chartWidget->controller()->resetZoom();
-}
+void MainWindow::onZoomReset() { m_chartWidget->controller()->resetZoom(); }
 
 void MainWindow::onToolPointClicked() {
     m_chartWidget->controller()->setTool(ToolMode::Point);
@@ -413,16 +439,13 @@ void MainWindow::onToolRulerClicked() {
     m_chartWidget->controller()->setTool(ToolMode::Ruler);
 }
 
-void MainWindow::onUndo() {
-    m_chartWidget->controller()->undoLastAction();
-}
+void MainWindow::onUndo() { m_chartWidget->controller()->undoLastAction(); }
 
 void MainWindow::onClearAll() {
     QMessageBox::StandardButton reply = QMessageBox::question(
         this, "Confirmar",
         "¿Estás seguro de que quieres borrar todos los trazos?",
-        QMessageBox::Yes | QMessageBox::No
-    );
+        QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
         m_chartWidget->controller()->clearAllDrawings();
@@ -449,61 +472,61 @@ void MainWindow::onZoomChanged(double factor) {
 
 void MainWindow::onToolChanged(int toolMode) {
     ToolMode mode = static_cast<ToolMode>(toolMode);
-    
+
     QString toolName;
     QWidget *anchor = nullptr;
     bool isDrawingTool = false;
-    
+
     switch (mode) {
-    case ToolMode::Pan: 
-        toolName = "Moverse"; 
+    case ToolMode::Pan:
+        toolName = "Moverse";
         break;
-    case ToolMode::Point: 
-        toolName = "Punto"; 
+    case ToolMode::Point:
+        toolName = "Punto";
         anchor = ui->toolPoint;
         isDrawingTool = true;
         break;
-    case ToolMode::Line: 
-        toolName = "Línea"; 
+    case ToolMode::Line:
+        toolName = "Línea";
         anchor = ui->toolLine;
         isDrawingTool = true;
         break;
-    case ToolMode::Arc: 
-        toolName = "Arco"; 
+    case ToolMode::Arc:
+        toolName = "Arco";
         anchor = ui->toolArc;
         isDrawingTool = true;
         break;
-    case ToolMode::Text: 
-        toolName = "Texto"; 
+    case ToolMode::Text:
+        toolName = "Texto";
         anchor = ui->toolText;
         isDrawingTool = true;
         break;
-    case ToolMode::Eraser: 
-        toolName = "Borrador"; 
+    case ToolMode::Eraser:
+        toolName = "Borrador";
         break;
-    case ToolMode::Protractor: 
-        toolName = "Transportador"; 
+    case ToolMode::Protractor:
+        toolName = "Transportador";
         break;
-    case ToolMode::Ruler: 
-        toolName = "Regla"; 
+    case ToolMode::Ruler:
+        toolName = "Regla";
         break;
-    default: 
-        toolName = "Selecciona"; 
+    default:
+        toolName = "Selecciona";
         break;
     }
-    
-// Mostrar/ocultar ángulo según herramienta
+
+    // Mostrar/ocultar ángulo según herramienta
     m_angleLabel->setVisible(mode == ToolMode::Protractor);
-    
+
     // Configurar cursor según herramienta
     QCursor cursor = Qt::ArrowCursor;
     bool showPopup = isDrawingTool;
-    
+
     switch (mode) {
-    case ToolMode::Pan: 
-        cursor = Qt::OpenHandCursor; 
+    case ToolMode::Pan:
+        cursor = Qt::OpenHandCursor;
         break;
-    case ToolMode::Point: 
+    case ToolMode::Point:
     case ToolMode::Line:
     case ToolMode::Arc:
         cursor = Qt::CrossCursor;
@@ -519,23 +542,23 @@ void MainWindow::onToolChanged(int toolMode) {
         break;
     }
     m_chartWidget->setCursor(cursor);
-    
+
     // Actualizar indicador de herramienta en el ChartWidget (mostrar para todas)
     QColor color = m_chartWidget->controller()->strokeColor();
     int width = m_chartWidget->controller()->strokeWidth();
     m_chartWidget->updateToolIndicator(toolName, color, width, isDrawingTool);
-    
+
     // Configurar popup de trazo (modo texto vs normal)
     if (m_strokePopup) {
         m_strokePopup->setTextMode(mode == ToolMode::Text);
-        
+
         if (showPopup && anchor) {
             showStrokeSettings(anchor);
         } else {
             m_strokePopup->hide();
         }
     }
-    
+
     updateToolButtonStates();
 }
 
@@ -548,7 +571,7 @@ void MainWindow::updateToolButtonStates() {
     // Actualizar visualmente qué botón está seleccionado
     ToolMode current = m_chartWidget->controller()->currentTool();
     int currentId = static_cast<int>(current);
-    
+
     QAbstractButton *button = m_toolGroup->button(currentId);
     if (button) {
         button->setChecked(true);
@@ -559,8 +582,9 @@ void MainWindow::updateToolButtonStates() {
 
 void MainWindow::onShowStats() {
     // TODO: Abrir diálogo de estadísticas
-    QMessageBox::information(this, "Estadísticas",
-                             "Próximamente: Historial de sesiones y estadísticas.");
+    QMessageBox::information(
+        this, "Estadísticas",
+        "Próximamente: Historial de sesiones y estadísticas.");
 }
 
 void MainWindow::onShowProfile() {
@@ -571,7 +595,8 @@ void MainWindow::onShowProfile() {
 
 void MainWindow::onShowManual() {
     // Abrir manual de ayuda
-    QMessageBox::information(this, "Manual de Uso",
+    QMessageBox::information(
+        this, "Manual de Uso",
         "<h3>Carta Náutica Digital</h3>"
         "<p><b>Navegación:</b></p>"
         "<ul>"
@@ -591,12 +616,12 @@ void MainWindow::onShowManual() {
         "<li>🧭 <b>Transportador:</b> Arrastra para mover, rueda para rotar</li>"
         "<li>📏 <b>Regla:</b> Arrastra para medir distancias</li>"
         "</ul>"
-        "<p><b>Atajos:</b> Ctrl+Z (Deshacer), +/- (Zoom), Esc (Cancelar)</p>"
-    );
+        "<p><b>Atajos:</b> Ctrl+Z (Deshacer), +/- (Zoom), Esc (Cancelar)</p>");
 }
 
 void MainWindow::onAbout() {
-    QMessageBox::about(this, "Acerca de",
+    QMessageBox::about(
+        this, "Acerca de",
         "<h2>Patrón de Embarcación de Recreo</h2>"
         "<p>Aplicación de preparación para el examen de navegación.</p>"
         "<p><b>Características:</b></p>"
@@ -607,8 +632,7 @@ void MainWindow::onAbout() {
         "<li>Quiz de preguntas tipo test</li>"
         "</ul>"
         "<p><b>Curso 2025-2026 - UPV</b></p>"
-        "<p>Práctica de Interacción Humano-Máquina</p>"
-    );
+        "<p>Práctica de Interacción Humano-Máquina</p>");
 }
 
 // === STROKE SETTINGS ===
@@ -639,4 +663,3 @@ void MainWindow::updateToolIndicator() {
     int width = m_chartWidget->controller()->strokeWidth();
     m_chartWidget->updateToolIndicator("", color, width, true);
 }
-
