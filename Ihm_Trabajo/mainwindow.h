@@ -15,6 +15,7 @@ class QFrame;
 class ProfileController;
 class ProfileView;
 class ResultsView;
+class QuizView; // Forward declaration
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -116,6 +117,7 @@ private:
     StrokeSettingsPopup *m_strokePopup;
     ProfileView *m_profileView;
     ResultsView *m_resultsView;
+    QuizView *m_quizView;
 
     void setupControllers();
     void setupChartWidget();

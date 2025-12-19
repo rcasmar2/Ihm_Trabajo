@@ -213,6 +213,62 @@ void NavigationDAO::replaceAllProblems(const QVector<Problem> &problems) {
     }
 }
 
+void NavigationDAO::addProblem(const Problem &problem) {
+    QSqlQuery q(m_db);
+    q.prepare(R"(
+        INSERT INTO problems (text, answers) VALUES (:text, :answers)
+    )");
+    
+    QJsonArray answersArray;
+    for (const Answer &a : problem.answers()) {
+        QJsonObject ansObj;
+        ansObj["text"] = a.text();
+        ansObj["valid"] = a.validity();
+        answersArray.append(ansObj);
+    }
+    
+    q.bindValue(":text", problem.text());
+    q.bindValue(":answers", QJsonDocument(answersArray).toJson(QJsonDocument::Compact));
+    
+    if (!q.exec()) {
+        throwSqlError("addProblem", q.lastError());
+    }
+}
+
+void NavigationDAO::importProblemsFromJson(const QString &jsonFilePath) {
+    QFile file(jsonFilePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qWarning() << "Could not open problems.json:" << jsonFilePath;
+        return;
+    }
+    
+    QByteArray data = file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(data);
+    
+    if (!doc.isArray()) return;
+    
+    QVector<Problem> problems;
+    QJsonArray arr = doc.array();
+    
+    for (const QJsonValue &val : arr) {
+        QJsonObject obj = val.toObject();
+        QString text = obj["text"].toString();
+        QJsonArray ansArr = obj["answers"].toArray();
+        QVector<Answer> answers;
+        
+        for (const QJsonValue &aVal : ansArr) {
+            QJsonObject aObj = aVal.toObject();
+            answers.append(Answer(aObj["text"].toString(), aObj["valid"].toBool()));
+        }
+        
+        problems.append(Problem(text, answers));
+    }
+    
+    if (!problems.isEmpty()) {
+       replaceAllProblems(problems);
+    }
+}
+
 // === BUILDERS ===
 
 User NavigationDAO::buildUserFromQuery(QSqlQuery &q) {

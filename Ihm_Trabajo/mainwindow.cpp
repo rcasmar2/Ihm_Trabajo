@@ -11,6 +11,7 @@
 #include "utils/validators.h"
 #include "views/profileview.h"
 #include "views/resultsview.h"
+#include "views/quizview.h"
 #include "widgets/chartwidget.h"
 #include "widgets/strokesettingspopup.h"
 
@@ -32,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_loginController(nullptr),
     m_registerController(nullptr), m_sessionController(nullptr), m_profileController(nullptr),
     m_chartWidget(nullptr), m_coordLabel(nullptr), m_zoomLabel(nullptr),
-    m_angleLabel(nullptr), m_toolGroup(nullptr), m_strokePopup(nullptr), m_profileView(nullptr), m_resultsView(nullptr) {
+    m_angleLabel(nullptr), m_toolGroup(nullptr), m_strokePopup(nullptr), m_profileView(nullptr), m_resultsView(nullptr), m_quizView(nullptr) {
     ui->setupUi(this);
 
     setupControllers();
@@ -66,14 +67,20 @@ void MainWindow::setupViews() {
     // Instantiate views
     m_profileView = new ProfileView(this);
     m_resultsView = new ResultsView(this);
+    m_quizView = new QuizView(this);
 
     // Pass controllers
     m_profileView->setController(m_profileController);
     m_resultsView->setController(m_sessionController);
+    m_quizView->setController(m_sessionController);
 
     // Add to StackedWidget
     ui->stackedWidget->addWidget(m_profileView); // Index 3
     ui->stackedWidget->addWidget(m_resultsView); // Index 4
+    ui->stackedWidget->addWidget(m_quizView);    // Index 5
+    
+    // Connect back signals
+    connect(m_quizView, &QuizView::backRequested, this, &MainWindow::showDashboard);
 }
 
 void MainWindow::setupChartWidget() {
@@ -697,10 +704,14 @@ void MainWindow::onClearAll() {
 }
 
 void MainWindow::onStartQuiz() {
-    // TODO: Abrir diálogo de quiz
-    QMessageBox::information(this, "Quiz de Navegación",
-                             "Próximamente: Sesión de preguntas tipo test\n"
-                             "para preparar el examen de Patrón de Embarcación.");
+    if (!m_loginController->isLoggedIn()) {
+         QMessageBox::warning(this, "Acceso denegado", "Debes iniciar sesión para realizar problemas.");
+         return;
+    }
+    
+    User *user = m_loginController->currentUser();
+    m_quizView->startQuiz(user);
+    ui->stackedWidget->setCurrentIndex(5);
 }
 
 // === CHART SLOTS ===

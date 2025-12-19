@@ -31,7 +31,8 @@ SOURCES += \
     lib/navigation.cpp \
     lib/navigationdao.cpp \
     views/profileview.cpp \
-    views/resultsview.cpp
+    views/resultsview.cpp \
+    views/quizview.cpp
 
 HEADERS += \
     mainwindow.h \
@@ -46,6 +47,7 @@ HEADERS += \
     widgets/strokesettingspopup.h \
     views/profileview.h \
     views/resultsview.h \
+    views/quizview.h \
     utils/validators.h \
     utils/charttypes.h \
     lib/include/navigation.h \
@@ -58,7 +60,8 @@ FORMS += \
     views/loginview.ui \
     views/registerview.ui \
     views/profileview.ui \
-    views/resultsview.ui
+    views/resultsview.ui \
+    views/quizview.ui
 
 # Resources
 RESOURCES += \

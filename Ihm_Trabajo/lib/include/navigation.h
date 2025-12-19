@@ -25,6 +25,7 @@ public:
     void removeUser(const QString &nickName);
 
     void addSession(const QString &nickName, const Session &session);
+    void addProblem(const Problem &problem);
 
     void reload();
 

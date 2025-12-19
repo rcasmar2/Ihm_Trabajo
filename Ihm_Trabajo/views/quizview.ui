@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>QuizView</class>
+ <widget class="QWidget" name="QuizView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     
+     <!-- Page 0: Menu -->
+     <widget class="QWidget" name="pageMenu">
+      <layout class="QVBoxLayout" name="layoutMenu">
+        <item><widget class="QLabel" name="lblTitle"><property name="text"><string>Menú de Problemas</string></property><property name="alignment"><set>Qt::AlignCenter</set></property><property name="styleSheet"><string>font-size: 24px; font-weight: bold; color: white;</string></property></widget></item>
+        <item>
+           <layout class="QHBoxLayout" name="layoutButtons">
+              <item><widget class="QPushButton" name="btnRandom"><property name="text"><string>Problema Aleatorio</string></property><property name="minimumHeight"><number>50</number></property></widget></item>
+              <item><widget class="QPushButton" name="btnSelect"><property name="text"><string>Seleccionar de Lista</string></property><property name="minimumHeight"><number>50</number></property></widget></item>
+           </layout>
+        </item>
+        <item><widget class="QPushButton" name="btnBackToChart"><property name="text"><string>Volver a la Carta</string></property><property name="styleSheet"><string>margin-top: 20px;</string></property></widget></item>
+        <item><spacer name="spacer"><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+      </layout>
+     </widget>
+
+     <!-- Page 1: List -->
+     <widget class="QWidget" name="pageList">
+       <layout class="QVBoxLayout" name="layoutList">
+         <item><widget class="QLabel" name="lblListTitle"><property name="text"><string>Selecciona un problema</string></property><property name="styleSheet"><string>font-size: 18px; color: white;</string></property></widget></item>
+         <item>
+            <layout class="QHBoxLayout" name="layoutListActions">
+                <item><widget class="QPushButton" name="btnAddQuestion"><property name="text"><string>Crear Pregunta</string></property><property name="styleSheet"><string>background-color: #3498db; color: white;</string></property></widget></item>
+                <item><spacer name="spacerListAction"><property name="orientation"><enum>Qt::Horizontal</enum></property></spacer></item>
+            </layout>
+         </item>
+         <item><widget class="QListWidget" name="problemList"/></item>
+         <item><widget class="QPushButton" name="btnBackFromList"><property name="text"><string>Volver</string></property></widget></item>
+       </layout>
+     </widget>
+
+     <!-- Page 2: Problem (Existing) -->
+     <widget class="QWidget" name="pageProblem">
+       <layout class="QVBoxLayout" name="layoutProblem">
+         <item><widget class="QLabel" name="labelQuestion">
+           <property name="text"><string>Pregunta...</string></property>
+           <property name="wordWrap"><bool>true</bool></property>
+           <property name="styleSheet"><string>font-size: 18px; font-weight: bold; color: white; margin-bottom: 20px;</string></property>
+         </widget></item>
+         
+         <item><widget class="QRadioButton" name="rbAnswer1"><property name="text"><string>Respuesta 1</string></property><property name="styleSheet"><string>padding: 10px; font-size: 14px;</string></property></widget></item>
+         <item><widget class="QRadioButton" name="rbAnswer2"><property name="text"><string>Respuesta 2</string></property><property name="styleSheet"><string>padding: 10px; font-size: 14px;</string></property></widget></item>
+         <item><widget class="QRadioButton" name="rbAnswer3"><property name="text"><string>Respuesta 3</string></property><property name="styleSheet"><string>padding: 10px; font-size: 14px;</string></property></widget></item>
+         <item><widget class="QRadioButton" name="rbAnswer4"><property name="text"><string>Respuesta 4</string></property><property name="styleSheet"><string>padding: 10px; font-size: 14px;</string></property></widget></item>
+         
+         <item><widget class="QLabel" name="labelFeedback">
+           <property name="text"><string></string></property>
+           <property name="alignment"><set>Qt::AlignCenter</set></property>
+           <property name="styleSheet"><string>font-size: 16px; font-weight: bold; margin: 15px;</string></property>
+         </widget></item>
+
+         <item>
+           <layout class="QHBoxLayout" name="layoutActions">
+             <item><widget class="QPushButton" name="btnVerify"><property name="text"><string>Verificar Solución</string></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="styleSheet"><string>background-color: #27ae60; color: white; padding: 10px;</string></property></widget></item>
+             <item><widget class="QPushButton" name="btnBackFromProblem"><property name="text"><string>Volver al Menú</string></property><property name="styleSheet"><string>padding: 10px;</string></property></widget></item>
+           </layout>
+         </item>
+         <item><spacer name="spacerProb"><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+       </layout>
+     </widget>
+
+     <!-- Page 3: Create Problem -->
+     <widget class="QWidget" name="pageCreate">
+        <layout class="QVBoxLayout" name="layoutCreate">
+            <item><widget class="QLabel" name="lblCreateTitle"><property name="text"><string>Crear Nueva Pregunta</string></property><property name="styleSheet"><string>font-size: 18px; font-weight: bold; color: white; margin-bottom: 10px;</string></property></widget></item>
+            
+            <item><widget class="QLineEdit" name="editQuestionText"><property name="placeholderText"><string>Enunciado de la pregunta...</string></property></widget></item>
+            
+            <item><widget class="QLabel" name="lblAnswers"><property name="text"><string>Respuestas (Marca la correcta):</string></property></widget></item>
+            
+            <item>
+                <layout class="QHBoxLayout" name="layoutAns1">
+                    <item><widget class="QRadioButton" name="rbCorrect1"><property name="text"><string/></property></widget></item>
+                    <item><widget class="QLineEdit" name="editAnswer1"><property name="placeholderText"><string>Opción 1</string></property></widget></item>
+                </layout>
+            </item>
+            <item>
+                <layout class="QHBoxLayout" name="layoutAns2">
+                    <item><widget class="QRadioButton" name="rbCorrect2"><property name="text"><string/></property></widget></item>
+                    <item><widget class="QLineEdit" name="editAnswer2"><property name="placeholderText"><string>Opción 2</string></property></widget></item>
+                </layout>
+            </item>
+            <item>
+                <layout class="QHBoxLayout" name="layoutAns3">
+                    <item><widget class="QRadioButton" name="rbCorrect3"><property name="text"><string/></property></widget></item>
+                    <item><widget class="QLineEdit" name="editAnswer3"><property name="placeholderText"><string>Opción 3</string></property></widget></item>
+                </layout>
+            </item>
+            <item>
+                <layout class="QHBoxLayout" name="layoutAns4">
+                    <item><widget class="QRadioButton" name="rbCorrect4"><property name="text"><string/></property></widget></item>
+                    <item><widget class="QLineEdit" name="editAnswer4"><property name="placeholderText"><string>Opción 4</string></property></widget></item>
+                </layout>
+            </item>
+
+            <item>
+                <layout class="QHBoxLayout" name="layoutCreateActions">
+                    <item><widget class="QPushButton" name="btnSaveQuestion"><property name="text"><string>Guardar Pregunta</string></property><property name="styleSheet"><string>background-color: #27ae60; color: white;</string></property></widget></item>
+                    <item><widget class="QPushButton" name="btnCancelCreate"><property name="text"><string>Cancelar</string></property></widget></item>
+                </layout>
+            </item>
+            <item><spacer name="spacerCreate"><property name="orientation"><enum>Qt::Vertical</enum></property></spacer></item>
+        </layout>
+     </widget>
+
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

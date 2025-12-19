@@ -60,6 +60,13 @@ void Navigation::addSession(const QString &nickName, const Session &session) {
     }
 }
 
+void Navigation::addProblem(const Problem &problem) {
+    m_dao.addProblem(problem);
+    // Agregarlo a la lista en memoria también o recargar?
+    // Mejor agregar para evitar reload
+    m_problems.append(problem);
+}
+
 void Navigation::reload() {
     m_users.clear();
     m_problems.clear();
@@ -69,6 +76,13 @@ void Navigation::reload() {
 void Navigation::loadFromDb() {
     m_users = m_dao.loadUsers();
     m_problems = m_dao.loadProblems();
+    
+    // Si no hay problemas, intentar cargar desde JSON
+    if (m_problems.isEmpty()) {
+        m_dao.importProblemsFromJson("problems.json"); 
+        // Recargar desde DB para tener los IDs correctos si importamos
+        m_problems = m_dao.loadProblems();
+    }
     
     // Cargar sesiones para cada usuario
     for (auto it = m_users.begin(); it != m_users.end(); ++it) {

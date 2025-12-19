@@ -27,6 +27,8 @@ public:
     void addSession(const QString &nickName, const Session &session);
 
     void replaceAllProblems(const QVector<Problem> &problems);
+    void addProblem(const Problem &problem);
+    void importProblemsFromJson(const QString &jsonFilePath);
 
 private:
     QString      m_dbFilePath;

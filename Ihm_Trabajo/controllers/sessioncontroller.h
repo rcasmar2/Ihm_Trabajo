@@ -75,6 +75,28 @@ public:
                                         const QDate &from = QDate(),
                                         const QDate &to = QDate()) const;
 
+    /**
+     * Inicia una sesión con un solo problema aleatorio
+     */
+    void startRandomProblem(User *user);
+
+    /**
+     * Inicia una sesión con un problema específico
+     * @param index Índice del problema en la lista global
+     */
+    void startSpecificProblem(User *user, int index);
+
+    /**
+     * Adds a new problem to the system
+     */
+    void addProblem(const QString &text, const QVector<Answer> &answers);
+
+    /**
+     * @return List of answers for the current problem, potentially shuffled
+     */
+    QVector<Answer> currentShuffledAnswers() const { return m_currentShuffledAnswers; }
+
+
 signals:
     void sessionStarted();
     void problemChanged(int index);  // Simplificado para evitar tipo incompleto
@@ -90,5 +112,7 @@ private:
     bool m_sessionActive = false;
     QDateTime m_sessionStart;
 
+    QVector<Answer> m_currentShuffledAnswers;
     void shuffleProblems();
+    void prepareProblemAnswers(); // Prepares and shuffles answers for current problem
 };
