@@ -1,0 +1,511 @@
+[
+  {
+    "id": 16,
+    "text": "Desde Tarifa se traza una derrota con rumbo 090°. ¿Hacia qué zona se dirige el barco?",
+    "answers": [
+      { "text": "Océano Atlántico", "valid": false },
+      { "text": "Costa africana", "valid": false },
+      { "text": "Mar Mediterráneo", "valid": true },
+      { "text": "Bahía de Algeciras", "valid": false }
+    ]
+  },
+  {
+    "id": 17,
+    "text": "Desde Punta Malabata se traza una línea hacia Punta Europa. ¿El rumbo verdadero es aproximadamente?",
+    "answers": [
+      { "text": "045°", "valid": false },
+      { "text": "090°", "valid": false },
+      { "text": "315°", "valid": true },
+      { "text": "180°", "valid": false }
+    ]
+  },
+  {
+    "id": 18,
+    "text": "Midiendo con el compás la distancia entre Ceuta y Punta Malabata, se obtiene aproximadamente:",
+    "answers": [
+      { "text": "2 MN", "valid": false },
+      { "text": "6 MN", "valid": true },
+      { "text": "12 MN", "valid": false },
+      { "text": "20 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 19,
+    "text": "Desde Punta Europa se navega 8 MN con rumbo 225°. ¿Dónde queda el punto final?",
+    "answers": [
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En la Bahía de Algeciras", "valid": true },
+      { "text": "En el Estrecho", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 20,
+    "text": "Desde Ceuta se traza una derrota de 180°. ¿Qué ocurre al prolongarla?",
+    "answers": [
+      { "text": "Cruza el Estrecho", "valid": false },
+      { "text": "Sale al Mediterráneo", "valid": false },
+      { "text": "Entra en tierra", "valid": true },
+      { "text": "Llega a Tarifa", "valid": false }
+    ]
+  },
+
+  {
+    "id": 21,
+    "text": "Se mide la distancia entre Tarifa y Punta Carnero. El valor aproximado es:",
+    "answers": [
+      { "text": "3 MN", "valid": false },
+      { "text": "7 MN", "valid": true },
+      { "text": "14 MN", "valid": false },
+      { "text": "25 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 22,
+    "text": "Desde Punta Carnero se traza un rumbo 135° durante 6 MN. ¿Dónde termina la derrota?",
+    "answers": [
+      { "text": "En la costa africana", "valid": false },
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En el Atlántico", "valid": false }
+    ]
+  },
+  {
+    "id": 23,
+    "text": "Desde Tarifa se navega 5 MN con rumbo 315°. ¿Dónde queda el punto obtenido?",
+    "answers": [
+      { "text": "En tierra", "valid": true },
+      { "text": "En el Estrecho", "valid": false },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 24,
+    "text": "Se traza una derrota entre Ceuta y Punta Europa. ¿Qué tipo de rumbo es predominante?",
+    "answers": [
+      { "text": "Norte", "valid": false },
+      { "text": "Este", "valid": false },
+      { "text": "Noroeste", "valid": true },
+      { "text": "Suroeste", "valid": false }
+    ]
+  },
+  {
+    "id": 25,
+    "text": "Midiendo con el compás la distancia entre Tarifa y Ceuta, se obtiene aproximadamente:",
+    "answers": [
+      { "text": "8 MN", "valid": false },
+      { "text": "14 MN", "valid": true },
+      { "text": "22 MN", "valid": false },
+      { "text": "30 MN", "valid": false }
+    ]
+  },
+
+  {
+    "id": 26,
+    "text": "Desde Punta Europa se traza un arco de 6 MN. ¿Qué representa dicho arco?",
+    "answers": [
+      { "text": "Puntos con el mismo rumbo", "valid": false },
+      { "text": "Puntos a 6 MN de Punta Europa", "valid": true },
+      { "text": "Puntos con la misma latitud", "valid": false },
+      { "text": "Puntos alineados con Ceuta", "valid": false }
+    ]
+  },
+  {
+    "id": 27,
+    "text": "Un barco está a 5 MN de Tarifa y a 7 MN de Punta Carnero. Tras trazar los arcos, la posición queda:",
+    "answers": [
+      { "text": "En la Bahía de Algeciras", "valid": true },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En Marruecos", "valid": false },
+      { "text": "En el Mediterráneo", "valid": false }
+    ]
+  },
+  {
+    "id": 28,
+    "text": "Desde Ceuta se navega 10 MN con rumbo 090°. ¿Dónde queda el punto final?",
+    "answers": [
+      { "text": "En el Estrecho", "valid": false },
+      { "text": "En el Mediterráneo", "valid": true },
+      { "text": "En Tarifa", "valid": false },
+      { "text": "En el Atlántico", "valid": false }
+    ]
+  },
+  {
+    "id": 29,
+    "text": "Desde Tarifa se traza una derrota hacia Punta Europa. ¿El rumbo es aproximadamente?",
+    "answers": [
+      { "text": "090°", "valid": false },
+      { "text": "180°", "valid": false },
+      { "text": "045°", "valid": true },
+      { "text": "270°", "valid": false }
+    ]
+  },
+  {
+    "id": 30,
+    "text": "Se mide con el compás la distancia mínima entre las dos costas del Estrecho. El valor correcto es:",
+    "answers": [
+      { "text": "3 MN", "valid": false },
+      { "text": "7 MN", "valid": true },
+      { "text": "12 MN", "valid": false },
+      { "text": "20 MN", "valid": false }
+    ]
+  },
+
+  {
+    "id": 31,
+    "text": "Desde Punta Malabata se navega 6 MN con rumbo 270°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En Marruecos", "valid": false },
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Tarifa", "valid": false }
+    ]
+  },
+  {
+    "id": 32,
+    "text": "Desde Punta Europa se traza una derrota con rumbo 045°. ¿Hacia qué zona se dirige?",
+    "answers": [
+      { "text": "Bahía de Algeciras", "valid": false },
+      { "text": "Costa española", "valid": true },
+      { "text": "Costa africana", "valid": false },
+      { "text": "Atlántico", "valid": false }
+    ]
+  },
+  {
+    "id": 33,
+    "text": "Midiendo la distancia entre Punta Carnero y Ceuta se obtiene aproximadamente:",
+    "answers": [
+      { "text": "4 MN", "valid": false },
+      { "text": "9 MN", "valid": true },
+      { "text": "16 MN", "valid": false },
+      { "text": "28 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 34,
+    "text": "Desde Tarifa se navega 4 MN con rumbo 180°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En tierra", "valid": false },
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En la Bahía", "valid": false }
+    ]
+  },
+  {
+    "id": 35,
+    "text": "Se traza una línea desde Ceuta hacia el oeste. ¿Cuál es el rumbo correcto?",
+    "answers": [
+      { "text": "000°", "valid": false },
+      { "text": "090°", "valid": false },
+      { "text": "180°", "valid": false },
+      { "text": "270°", "valid": true }
+    ]
+  },
+
+  {
+    "id": 36,
+    "text": "Desde Punta Europa se navega 12 MN con rumbo 090°. ¿Dónde termina la derrota?",
+    "answers": [
+      { "text": "En el Mediterráneo", "valid": true },
+      { "text": "En Tarifa", "valid": false },
+      { "text": "En Marruecos", "valid": false },
+      { "text": "En el Atlántico", "valid": false }
+    ]
+  },
+  {
+    "id": 37,
+    "text": "Un barco está a 6 MN de Tarifa y a 6 MN de Punta Europa. La posición queda:",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En tierra", "valid": false },
+      { "text": "En el Atlántico", "valid": false }
+    ]
+  },
+  {
+    "id": 38,
+    "text": "Desde Punta Carnero se traza un rumbo 090°. ¿Qué ocurre al prolongarlo?",
+    "answers": [
+      { "text": "Sale al Atlántico", "valid": false },
+      { "text": "Cruza el Estrecho", "valid": true },
+      { "text": "Entra en tierra", "valid": false },
+      { "text": "Llega a Ceuta", "valid": false }
+    ]
+  },
+  {
+    "id": 39,
+    "text": "Midiendo la distancia entre Punta Malabata y Tarifa se obtiene aproximadamente:",
+    "answers": [
+      { "text": "6 MN", "valid": false },
+      { "text": "14 MN", "valid": true },
+      { "text": "20 MN", "valid": false },
+      { "text": "30 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 40,
+    "text": "Desde Ceuta se navega 7 MN con rumbo 315°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En Marruecos", "valid": false },
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En Tarifa", "valid": false },
+      { "text": "En el Atlántico", "valid": false }
+    ]
+  },
+
+  {
+    "id": 41,
+    "text": "Desde Tarifa se traza un arco de 5 MN. ¿Qué representa?",
+    "answers": [
+      { "text": "Una derrota", "valid": false },
+      { "text": "Puntos a 5 MN de Tarifa", "valid": true },
+      { "text": "Un rumbo constante", "valid": false },
+      { "text": "Una línea de costa", "valid": false }
+    ]
+  },
+  {
+    "id": 42,
+    "text": "Un barco está a igual distancia de Ceuta y Punta Europa. ¿Dónde se sitúa tras trazar la mediatriz?",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En Tarifa", "valid": false },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 43,
+    "text": "Desde Punta Europa se navega 4 MN con rumbo 270°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En el Atlántico", "valid": true },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 44,
+    "text": "Se mide la distancia entre Tarifa y Punta Europa. El valor correcto es:",
+    "answers": [
+      { "text": "2 MN", "valid": false },
+      { "text": "5 MN", "valid": true },
+      { "text": "9 MN", "valid": false },
+      { "text": "15 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 45,
+    "text": "Desde Ceuta se traza un rumbo 045°. ¿Hacia qué costa se dirige?",
+    "answers": [
+      { "text": "Costa africana", "valid": false },
+      { "text": "Costa española", "valid": true },
+      { "text": "Atlántico", "valid": false },
+      { "text": "Interior", "valid": false }
+    ]
+  },
+
+  {
+    "id": 46,
+    "text": "Desde Punta Malabata se navega 4 MN con rumbo 315°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En Marruecos", "valid": false },
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En el Atlántico", "valid": false }
+    ]
+  },
+  {
+    "id": 47,
+    "text": "Midiendo con el compás la distancia entre Ceuta y Tarifa se obtiene:",
+    "answers": [
+      { "text": "6 MN", "valid": false },
+      { "text": "14 MN", "valid": true },
+      { "text": "22 MN", "valid": false },
+      { "text": "30 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 48,
+    "text": "Desde Punta Carnero se navega 3 MN con rumbo 180°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En tierra", "valid": true },
+      { "text": "En el Estrecho", "valid": false },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En Ceuta", "valid": false }
+    ]
+  },
+  {
+    "id": 49,
+    "text": "Un barco está a 7 MN de Ceuta y a 7 MN de Punta Europa. La posición queda:",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En Tarifa", "valid": false },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 50,
+    "text": "Desde Tarifa se traza una derrota con rumbo 225°. ¿Dónde se dirige?",
+    "answers": [
+      { "text": "En el Atlántico", "valid": true },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En tierra", "valid": false }
+    ]
+  },
+
+  {
+    "id": 51,
+    "text": "Desde Punta Europa se navega 6 MN con rumbo 135°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En Tarifa", "valid": false },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En tierra", "valid": false }
+    ]
+  },
+  {
+    "id": 52,
+    "text": "Midiendo la distancia entre Punta Malabata y Ceuta se obtiene aproximadamente:",
+    "answers": [
+      { "text": "2 MN", "valid": false },
+      { "text": "6 MN", "valid": true },
+      { "text": "12 MN", "valid": false },
+      { "text": "18 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 53,
+    "text": "Desde Tarifa se navega 10 MN con rumbo 090°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En el Mediterráneo", "valid": true },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 54,
+    "text": "Desde Ceuta se traza un rumbo 225°. ¿Dónde se dirige la derrota?",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En tierra", "valid": false },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Tarifa", "valid": false }
+    ]
+  },
+  {
+    "id": 55,
+    "text": "Midiendo con el compás la distancia entre Punta Europa y Punta Carnero se obtiene:",
+    "answers": [
+      { "text": "3 MN", "valid": false },
+      { "text": "5 MN", "valid": true },
+      { "text": "9 MN", "valid": false },
+      { "text": "15 MN", "valid": false }
+    ]
+  },
+
+  {
+    "id": 56,
+    "text": "Desde Punta Malabata se navega 8 MN con rumbo 045°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En el Mediterráneo", "valid": true },
+      { "text": "En el Estrecho", "valid": false },
+      { "text": "En Tarifa", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 57,
+    "text": "Un barco está a 6 MN de Tarifa y a 8 MN de Ceuta. Tras trazar los arcos, la posición queda:",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En tierra", "valid": false },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En el Mediterráneo", "valid": false }
+    ]
+  },
+  {
+    "id": 58,
+    "text": "Desde Punta Europa se navega 3 MN con rumbo 315°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En tierra", "valid": true },
+      { "text": "En el Estrecho", "valid": false },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En Ceuta", "valid": false }
+    ]
+  },
+  {
+    "id": 59,
+    "text": "Midiendo la distancia entre Tarifa y Punta Malabata se obtiene:",
+    "answers": [
+      { "text": "6 MN", "valid": false },
+      { "text": "14 MN", "valid": true },
+      { "text": "20 MN", "valid": false },
+      { "text": "30 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 60,
+    "text": "Desde Ceuta se navega 4 MN con rumbo 270°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En tierra", "valid": false },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Tarifa", "valid": false }
+    ]
+  },
+
+  {
+    "id": 61,
+    "text": "Desde Tarifa se traza un rumbo 045°. ¿Hacia dónde se dirige?",
+    "answers": [
+      { "text": "Hacia tierra", "valid": true },
+      { "text": "Hacia el Atlántico", "valid": false },
+      { "text": "Hacia Ceuta", "valid": false },
+      { "text": "Hacia Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 62,
+    "text": "Midiendo con el compás la distancia entre Punta Europa y Ceuta se obtiene:",
+    "answers": [
+      { "text": "6 MN", "valid": false },
+      { "text": "11 MN", "valid": true },
+      { "text": "18 MN", "valid": false },
+      { "text": "25 MN", "valid": false }
+    ]
+  },
+  {
+    "id": 63,
+    "text": "Desde Punta Carnero se navega 6 MN con rumbo 090°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En el Estrecho", "valid": true },
+      { "text": "En tierra", "valid": false },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En Ceuta", "valid": false }
+    ]
+  },
+  {
+    "id": 64,
+    "text": "Un barco está a 5 MN de Punta Europa y a 5 MN de Punta Carnero. La posición queda:",
+    "answers": [
+      { "text": "En la Bahía de Algeciras", "valid": true },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En el Atlántico", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  },
+  {
+    "id": 65,
+    "text": "Desde Tarifa se navega 12 MN con rumbo 270°. ¿Dónde queda el punto?",
+    "answers": [
+      { "text": "En el Atlántico", "valid": true },
+      { "text": "En el Mediterráneo", "valid": false },
+      { "text": "En Ceuta", "valid": false },
+      { "text": "En Marruecos", "valid": false }
+    ]
+  }
+]
