@@ -105,6 +105,58 @@ void StrokeSettingsPopup::setupUI() {
 
     mainLayout->addWidget(m_pointOptionsWidget);
     m_pointOptionsWidget->setVisible(false); // Default hidden
+    
+    // === SECCION ARCO/COMPAS ===
+    m_arcOptionsWidget = new QWidget(this);
+    QVBoxLayout *arcLayout = new QVBoxLayout(m_arcOptionsWidget);
+    arcLayout->setContentsMargins(0,0,0,0);
+    arcLayout->setSpacing(8);
+    
+    QLabel *radiusTitleLabel = new QLabel("RADIO", m_arcOptionsWidget);
+    radiusTitleLabel->setStyleSheet("color: #7f8c8d; font-size: 11px; font-weight: bold; background: transparent; text-transform: uppercase;");
+    arcLayout->addWidget(radiusTitleLabel);
+    
+    QHBoxLayout *radiusSliderLayout = new QHBoxLayout();
+    radiusSliderLayout->setSpacing(12);
+    
+    m_radiusSlider = new QSlider(Qt::Horizontal, m_arcOptionsWidget);
+    m_radiusSlider->setRange(20, 400);
+    m_radiusSlider->setValue(static_cast<int>(m_radius));
+    m_radiusSlider->setStyleSheet(R"(
+        QSlider::groove:horizontal {
+            height: 6px;
+            background: #1a1a1a;
+            border-radius: 3px;
+        }
+        QSlider::handle:horizontal {
+            background: #27ae60;
+            width: 20px;
+            height: 20px;
+            margin: -7px 0;
+            border-radius: 10px;
+        }
+        QSlider::handle:horizontal:hover {
+            background: #2ecc71;
+        }
+        QSlider::sub-page:horizontal {
+            background: #27ae60;
+            border-radius: 3px;
+        }
+    )");
+    connect(m_radiusSlider, &QSlider::valueChanged, this, &StrokeSettingsPopup::onRadiusSliderChanged);
+    radiusSliderLayout->addWidget(m_radiusSlider);
+    
+    m_radiusLabel = new QLabel(QString::number(static_cast<int>(m_radius)) + " px", m_arcOptionsWidget);
+    m_radiusLabel->setFixedWidth(55);
+    m_radiusLabel->setStyleSheet("color: #27ae60; font-size: 13px; font-weight: bold; background: transparent;");
+    m_radiusLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    radiusSliderLayout->addWidget(m_radiusLabel);
+    
+    arcLayout->addLayout(radiusSliderLayout);
+    arcLayout->addSpacing(6);
+    
+    mainLayout->addWidget(m_arcOptionsWidget);
+    m_arcOptionsWidget->setVisible(false); // Default hidden
 
     // === SECCIÓN COLOR ===
     QLabel *colorLabel = new QLabel("Color", this);
@@ -407,7 +459,33 @@ void StrokeSettingsPopup::setPointMode(bool enabled) {
         adjustSize();
     }
 }
-// (Mantener el resto igual hasta setTextMode)
+
+void StrokeSettingsPopup::setArcMode(bool enabled) {
+    if (m_arcOptionsWidget) {
+        m_arcOptionsWidget->setVisible(enabled);
+        adjustSize();
+    }
+}
+
+void StrokeSettingsPopup::onRadiusSliderChanged(int value) {
+    m_radius = static_cast<double>(value);
+    if (m_radiusLabel) {
+        m_radiusLabel->setText(QString::number(value) + " px");
+    }
+    emit radiusChanged(m_radius);
+}
+
+void StrokeSettingsPopup::setRadius(double radius) {
+    m_radius = qBound(20.0, radius, 400.0);
+    if (m_radiusSlider) {
+        m_radiusSlider->blockSignals(true);
+        m_radiusSlider->setValue(static_cast<int>(m_radius));
+        m_radiusSlider->blockSignals(false);
+    }
+    if (m_radiusLabel) {
+        m_radiusLabel->setText(QString::number(static_cast<int>(m_radius)) + " px");
+    }
+}
 
 void StrokeSettingsPopup::updateColorButtonStyle() {
     m_colorButton->setStyleSheet(QString(

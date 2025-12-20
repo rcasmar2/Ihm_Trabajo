@@ -15,6 +15,7 @@
 // Forward declarations for SVG overlay tools
 class DraggableProtractor;
 class DraggableRuler;
+class DraggableCompass;  // NUEVO
 
 /**
  * ChartController - Controlador principal de la carta náutica
@@ -76,12 +77,18 @@ public:
     // === HERRAMIENTAS OVERLAY (SVG) ===
     void showProtractor(bool visible);
     void showRuler(bool visible);
+    void showCompass(bool visible);  // NUEVO
     void rotateProtractor(double angleDelta);
     void rotateRuler(double angleDelta);
     bool isProtractorVisible() const;
     bool isRulerVisible() const;
+    bool isCompassVisible() const;   // NUEVO
     double protractorAngle() const;
     double rulerAngle() const;
+    
+    // === COMPÁS ===
+    void setCompassRadius(double radius);  // NUEVO
+    double compassRadius() const;          // NUEVO
 
 signals:
     void toolChanged(ToolMode newTool);
@@ -113,6 +120,7 @@ private:
     // Herramientas Overlay (SVG-based)
     DraggableProtractor *m_protractor = nullptr;
     DraggableRuler *m_ruler = nullptr;
+    DraggableCompass *m_compass = nullptr;  // NUEVO
 
     // Métodos privados
     void createPoint(const QPointF &pos);
@@ -125,4 +133,5 @@ private:
     void createText(const QPointF &pos);
     void eraseItemAt(const QPointF &pos);
     QPointF adjustForZoom(const QPointF &viewPos) const;
+    void onArcCompleted(const QPainterPath &path, const QColor &color, int width);  // NUEVO
 };

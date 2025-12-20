@@ -74,13 +74,11 @@ void MainWindow::setupViews() {
     m_resultsView->setController(m_sessionController);
     m_quizView->setController(m_sessionController);
 
-    // Add to StackedWidget
+    // Add to StackedWidget (quizView is now a dialog, not added here)
     ui->stackedWidget->addWidget(m_profileView); // Index 3
     ui->stackedWidget->addWidget(m_resultsView); // Index 4
-    ui->stackedWidget->addWidget(m_quizView);    // Index 5
     
-    // Connect back signals
-    connect(m_quizView, &QuizView::backRequested, this, &MainWindow::showDashboard);
+    // Connect back signals - quizView closes itself as dialog
 }
 
 void MainWindow::setupChartWidget() {
@@ -161,14 +159,14 @@ void MainWindow::setupToolbar() {
     
     // === Botón Mover/Seleccionar (Combo) ===
     QToolButton *btnMode = new QToolButton(this);
-    btnMode->setPopupMode(QToolButton::MenuButtonPopup);
+    btnMode->setPopupMode(QToolButton::InstantPopup);
     btnMode->setToolTip("Herramienta de Navegación");
     btnMode->setToolButtonStyle(Qt::ToolButtonIconOnly);
-    btnMode->setMinimumSize(60, 50);
-    // Estilo base
+    btnMode->setFixedSize(60, 50);
+    // Estilo base con triángulo pequeño en esquina inferior derecha
     btnMode->setStyleSheet(R"(
         QToolButton { 
-            background-color: #0f3460; 
+            background-color: #1a1a1a; 
             color: white; 
             border: 2px solid transparent; 
             border-radius: 12px;
@@ -176,19 +174,17 @@ void MainWindow::setupToolbar() {
         }
         QToolButton::menu-indicator {
             image: url(:/resources/icons/triangle_small.svg);
-            subcontrol-origin: padding;
-            subcontrol-position: bottom right;
-            width: 8px;
-            height: 8px;
-            bottom: 4px;
-            right: 4px;
+            width: 6px;
+            height: 6px;
+            padding-right: 4px;
+            padding-bottom: 4px;
         }
         QToolButton:checked {
             background-color: #e94560;
             border-color: #ff6b6b;
         }
-        QToolButton:hover {
-            background-color: #16213e;
+        QToolButton:hover:!checked {
+            background-color: #2a2a2a;
         }
     )");
 
@@ -274,33 +270,80 @@ void MainWindow::setupToolbar() {
     // Dibujo
     setupToolButton(ui->toolPoint, ":/resources/icons/point.svg");
     setupToolButton(ui->toolLine, ":/resources/icons/line.svg");
-    setupToolButton(ui->toolArc, ":/resources/icons/arc.svg");
+    setupToolButton(ui->toolArc, ":/resources/icons/compass_icon_bar.svg");
     setupToolButton(ui->toolText, ":/resources/icons/text.svg");
     setupToolButton(ui->toolEraser, ":/resources/icons/eraser.svg");
 
-    // Medición (verde cuando seleccionado)
-    auto setupMeasureButton = [&createWhiteIcon](QPushButton *btn,
-                                                 const QString &iconPath) {
-        btn->setText("");
-        btn->setIcon(createWhiteIcon(iconPath));
-        btn->setIconSize(QSize(24, 24));
-        btn->setStyleSheet(R"(
-            QPushButton {
-                background-color: #1a1a1a;
-                border-radius: 12px;
-                border: 2px solid transparent;
-            }
-            QPushButton:checked {
-                background-color: #27ae60;
-                border-color: #2ecc71;
-            }
-            QPushButton:hover:!checked {
-                background-color: #2a2a2a;
-            }
-        )");
-    };
-    setupMeasureButton(ui->toolProtractor, ":/resources/icons/transportador.svg");
-    setupMeasureButton(ui->toolRuler, ":/resources/icons/ruler.svg");
+    // === Botón Herramientas de Medición (Combo) ===
+    QToolButton *btnMeasure = new QToolButton(this);
+    btnMeasure->setPopupMode(QToolButton::InstantPopup);
+    btnMeasure->setToolTip("Herramientas de Medición");
+    btnMeasure->setToolButtonStyle(Qt::ToolButtonIconOnly);
+    btnMeasure->setFixedSize(60, 50);
+    btnMeasure->setStyleSheet(R"(
+        QToolButton { 
+            background-color: #1a1a1a; 
+            color: white; 
+            border: 2px solid transparent; 
+            border-radius: 12px;
+            padding: 4px;
+        }
+        QToolButton::menu-indicator {
+            image: url(:/resources/icons/triangle_small.svg);
+            width: 6px;
+            height: 6px;
+            padding-right: 4px;
+            padding-bottom: 4px;
+        }
+        QToolButton:checked {
+            background-color: #27ae60;
+            border-color: #2ecc71;
+        }
+        QToolButton:hover:!checked {
+            background-color: #2a2a2a;
+        }
+    )");
+
+    // Menú de herramientas de medición (solo regla y transportador)
+    QMenu *measureMenu = new QMenu(btnMeasure);
+    measureMenu->setStyleSheet("QMenu { background-color: #1a1a1a; color: white; border: 1px solid #333; } QMenu::item:selected { background-color: #27ae60; }");
+    
+    QAction *actRuler = measureMenu->addAction(createWhiteIcon(":/resources/icons/rule_icon_bar.svg"), "Regla");
+    QAction *actProtractor = measureMenu->addAction(createWhiteIcon(":/resources/icons/transportador_icon_bar.svg"), "Transportador");
+
+    btnMeasure->setMenu(measureMenu);
+    
+    // Icono inicial (regla)
+    btnMeasure->setIcon(createWhiteIcon(":/resources/icons/rule_icon_bar.svg"));
+    btnMeasure->setIconSize(QSize(24, 24));
+    
+    // Conexiones del menú de medición
+    connect(actRuler, &QAction::triggered, this, [=]() {
+        m_chartWidget->controller()->setTool(ToolMode::Ruler);
+        btnMeasure->setIcon(createWhiteIcon(":/resources/icons/rule_icon_bar.svg"));
+    });
+    
+    connect(actProtractor, &QAction::triggered, this, [=]() {
+        m_chartWidget->controller()->setTool(ToolMode::Protractor);
+        btnMeasure->setIcon(createWhiteIcon(":/resources/icons/transportador_icon_bar.svg"));
+    });
+
+    // Ocultar botones originales de medición
+    ui->toolProtractor->hide();
+    ui->toolRuler->hide();
+    
+    // Insertar botón de medición en el layout (en la sección Medir)
+    if (auto layout = ui->centralwidget->findChild<QVBoxLayout*>("toolbarVLayout")) {
+        // Insertar después de los botones de dibujo, en la posición de toolProtractor
+        int insertIndex = layout->indexOf(ui->toolProtractor);
+        if (insertIndex >= 0) {
+            layout->insertWidget(insertIndex, btnMeasure);
+        }
+    }
+    
+    // Añadir al grupo para exclusividad (usar ID de Ruler como default)
+    btnMeasure->setCheckable(true);
+    m_toolGroup->addButton(btnMeasure, static_cast<int>(ToolMode::Ruler));
 
     // Acciones
     setupToolButton(ui->toolUndo, ":/resources/icons/undo-2.svg");
@@ -350,6 +393,11 @@ void MainWindow::setupToolbar() {
     connect(m_chartWidget->scene(), &QGraphicsScene::selectionChanged, this, &MainWindow::onSelectionChanged);
     connect(m_strokePopup, &StrokeSettingsPopup::toggleProjectionsRequested,
             this, &MainWindow::onToggleProjections);
+    
+    // === CONEXIÓN RADIO COMPÁS ===
+    connect(m_strokePopup, &StrokeSettingsPopup::radiusChanged, this, [this](double radius) {
+        m_chartWidget->controller()->setCompassRadius(radius);
+    });
 
     // === HACER LA TOOLBAR FLOTANTE ===
     // Sacar la toolbar del layout y posicionarla como overlay
@@ -711,7 +759,7 @@ void MainWindow::onStartQuiz() {
     
     User *user = m_loginController->currentUser();
     m_quizView->startQuiz(user);
-    ui->stackedWidget->setCurrentIndex(5);
+    m_quizView->exec(); // Show as modal dialog
 }
 
 // === CHART SLOTS ===
@@ -806,6 +854,8 @@ void MainWindow::onToolChanged(int toolMode) {
     // Configurar popup de trazo (modo texto vs normal)
     if (m_strokePopup) {
         m_strokePopup->setTextMode(mode == ToolMode::Text);
+        m_strokePopup->setPointMode(mode == ToolMode::Point);
+        m_strokePopup->setArcMode(mode == ToolMode::Arc);
 
         if (showPopup && anchor) {
             showStrokeSettings(anchor);

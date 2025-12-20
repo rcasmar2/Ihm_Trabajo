@@ -5,10 +5,24 @@
 #include <QDebug>
 
 QuizView::QuizView(QWidget *parent) :
-    QWidget(parent),
+    QDialog(parent),
     ui(new Ui::QuizView)
 {
     ui->setupUi(this);
+    
+    // Configure as popup dialog
+    setWindowTitle("Problemas de Navegación");
+    setModal(true);
+    setFixedSize(700, 550);
+    
+    // Apply dark theme styling
+    setStyleSheet(R"(
+        QDialog {
+            background-color: #1a1a2e;
+            border: 2px solid #333;
+            border-radius: 16px;
+        }
+    )");
 
     // Group radio buttons
     m_answerGroup = new QButtonGroup(this);
@@ -17,6 +31,9 @@ QuizView::QuizView(QWidget *parent) :
     m_answerGroup->addButton(ui->rbAnswer2, 1);
     m_answerGroup->addButton(ui->rbAnswer3, 2);
     m_answerGroup->addButton(ui->rbAnswer4, 3);
+
+    // Connect to update styling when selection changes
+    connect(m_answerGroup, &QButtonGroup::idClicked, this, &QuizView::updateAnswerStyles);
 
     // Connections
     connect(ui->btnRandom, &QPushButton::clicked, this, &QuizView::onRandomProblemClicked);
@@ -146,16 +163,56 @@ void QuizView::showFeedback(bool correct) {
         ui->labelFeedback->setText("¡Correcto!");
         ui->labelFeedback->setStyleSheet("font-size: 18px; font-weight: bold; color: #27ae60; margin: 15px;");
     } else {
-        ui->labelFeedback->setText("Incorrecto. Inténtalo de nuevo o repasa el tema.");
+        ui->labelFeedback->setText("Incorrecto. Inténtalo de nuevo.");
         ui->labelFeedback->setStyleSheet("font-size: 18px; font-weight: bold; color: #e74c3c; margin: 15px;");
     }
+    // Keep btnVerify enabled so user can try again
+}
+
+void QuizView::updateAnswerStyles() {
+    QList<QRadioButton*> rbs = {ui->rbAnswer1, ui->rbAnswer2, ui->rbAnswer3, ui->rbAnswer4};
     
-    // Disable inputs?
-    // User marks answer -> Verify.
-    // If incorrect, can he try again? "Juan marca la respuesta... verifica".
-    // Usually single attempt per "click".
-    // I will disable the Verify button.
-    ui->btnVerify->setEnabled(false);
+    QString selectedStyle = R"(
+        QRadioButton {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: white;
+            background-color: rgba(233, 69, 96, 0.25);
+            border: 2px solid #e94560;
+            border-radius: 8px;
+        }
+        QRadioButton::indicator {
+            width: 18px;
+            height: 18px;
+        }
+    )";
+    
+    QString defaultStyle = R"(
+        QRadioButton {
+            padding: 12px 16px;
+            font-size: 14px;
+            color: white;
+            background-color: #2a2a2a;
+            border: 2px solid transparent;
+            border-radius: 8px;
+        }
+        QRadioButton:hover {
+            background-color: #3a3a3a;
+            border-color: #555;
+        }
+        QRadioButton::indicator {
+            width: 18px;
+            height: 18px;
+        }
+    )";
+    
+    for (QRadioButton *rb : rbs) {
+        if (rb->isChecked()) {
+            rb->setStyleSheet(selectedStyle);
+        } else {
+            rb->setStyleSheet(defaultStyle);
+        }
+    }
 }
 
 void QuizView::clearFeedback() {
@@ -163,7 +220,8 @@ void QuizView::clearFeedback() {
 }
 
 void QuizView::onBackToChartClicked() {
-    emit backRequested();
+    if (m_controller) m_controller->endSession();
+    accept(); // Close dialog
 }
 
 void QuizView::onAddQuestionClicked() {

@@ -27,6 +27,7 @@ SOURCES += \
     widgets/draggableprotractor.cpp \
     widgets/draggableruler.cpp \
     widgets/strokesettingspopup.cpp \
+    widgets/draggablecompass.cpp \
     utils/validators.cpp \
     lib/navigation.cpp \
     lib/navigationdao.cpp \
@@ -45,6 +46,7 @@ HEADERS += \
     widgets/draggableprotractor.h \
     widgets/draggableruler.h \
     widgets/strokesettingspopup.h \
+    widgets/draggablecompass.h \
     views/profileview.h \
     views/resultsview.h \
     views/quizview.h \

@@ -87,8 +87,16 @@ private:
     
 public:
     void setTextMode(bool enabled);
-    void setPointMode(bool enabled); // NUEVO
-    
+    void setPointMode(bool enabled);
+    void setArcMode(bool enabled);  // NUEVO
+    void setRadius(double radius);  // NUEVO
+    double radius() const { return m_radius; }  // NUEVO
+
+signals:
+    void radiusChanged(double radius);  // NUEVO
+
+private slots:
+    void onRadiusSliderChanged(int value);  // NUEVO
 
 private:    
 
@@ -96,8 +104,14 @@ private:
     bool m_updatingFromHex = false;
     
     // Point Mode
-    QWidget *m_pointOptionsWidget = nullptr; // NUEVO
-    QPushButton *m_projectionsBtn = nullptr; // NUEVO
+    QWidget *m_pointOptionsWidget = nullptr;
+    QPushButton *m_projectionsBtn = nullptr;
+    
+    // Arc Mode
+    QWidget *m_arcOptionsWidget = nullptr;  // NUEVO
+    QSlider *m_radiusSlider = nullptr;      // NUEVO
+    QLabel *m_radiusLabel = nullptr;        // NUEVO
+    double m_radius = 100.0;                // NUEVO
     
     void updatePreview();
     void updateColorButtonStyle();

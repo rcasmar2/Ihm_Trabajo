@@ -91,8 +91,8 @@ ChartWidget::~ChartWidget() {
 void ChartWidget::mousePressEvent(QMouseEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
-    // Para herramientas overlay (Transportador/Regla), dejar que los items manejen el evento
-    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler) {
+    // Para herramientas overlay (Transportador/Regla/Compás), dejar que los items manejen el evento
+    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
         // Verificar si el click está sobre un item de la escena
         QGraphicsItem *item = itemAt(event->pos());
         if (item) {
@@ -130,7 +130,7 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
     m_controller->handleMouseMoveAt(scenePos);
     
     // Para herramientas overlay, dejar que los items manejen el drag
-    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler) {
+    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
         QGraphicsView::mouseMoveEvent(event);
         return;
     }
@@ -151,7 +151,7 @@ void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
     // Para herramientas overlay, dejar que los items manejen el release
-    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler) {
+    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
         QGraphicsView::mouseReleaseEvent(event);
         return;
     }
@@ -192,6 +192,12 @@ void ChartWidget::wheelEvent(QWheelEvent *event) {
 }
 
 void ChartWidget::keyPressEvent(QKeyEvent *event) {
+    // Para el compás, pasar eventos de teclado al ítem con foco
+    if (event->key() == Qt::Key_Space) {
+        QGraphicsView::keyPressEvent(event);
+        return;
+    }
+    
     // Atajos de teclado
     switch (event->key()) {
     case Qt::Key_Plus:
@@ -231,6 +237,15 @@ void ChartWidget::keyPressEvent(QKeyEvent *event) {
         return;
     }
     event->accept();
+}
+
+void ChartWidget::keyReleaseEvent(QKeyEvent *event) {
+    // Pasar eventos de teclado a los items (para el compás)
+    if (event->key() == Qt::Key_Space) {
+        QGraphicsView::keyReleaseEvent(event);
+        return;
+    }
+    QGraphicsView::keyReleaseEvent(event);
 }
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {

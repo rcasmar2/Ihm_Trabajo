@@ -1,6 +1,7 @@
 #include "chartcontroller.h"
 #include "draggableprotractor.h"
 #include "draggableruler.h"
+#include "draggablecompass.h"
 #include <QGraphicsEllipseItem>
 #include <QGraphicsLineItem>
 #include <QGraphicsTextItem>
@@ -84,13 +85,20 @@ void ChartController::setTool(ToolMode mode) {
         if (mode == ToolMode::Protractor) {
             showProtractor(true);
             showRuler(false);
+            showCompass(false);
         } else if (mode == ToolMode::Ruler) {
             showRuler(true);
             showProtractor(false);
-        } else {
-            // Ocultar ambas herramientas overlay al cambiar a otra herramienta
+            showCompass(false);
+        } else if (mode == ToolMode::Arc) {
+            showCompass(true);
             showProtractor(false);
             showRuler(false);
+        } else {
+            // Ocultar todas las herramientas overlay
+            showProtractor(false);
+            showRuler(false);
+            showCompass(false);
         }
 
         m_currentTool = mode;
@@ -117,7 +125,7 @@ void ChartController::handleMousePressAt(const QPointF &scenePos, Qt::MouseButto
         startLine(scenePos);
         break;
     case ToolMode::Arc:
-        startArc(scenePos);
+        // No hacer nada - el DraggableCompass maneja el dibujo de arcos
         break;
     case ToolMode::Text:
         createText(scenePos);
@@ -142,7 +150,7 @@ void ChartController::handleMouseMoveAt(const QPointF &scenePos) {
         updateGhostLine(scenePos);
         break;
     case ToolMode::Arc:
-        updateGhostArc(scenePos);
+        // No hacer nada - el DraggableCompass maneja el dibujo de arcos
         break;
     default:
         break;
@@ -159,7 +167,7 @@ void ChartController::handleMouseReleaseAt(const QPointF &scenePos, Qt::MouseBut
             finishLine(scenePos);
             break;
         case ToolMode::Arc:
-            finishArc(scenePos);
+            // No hacer nada - el DraggableCompass maneja el dibujo de arcos
             break;
         default:
             break;
@@ -194,7 +202,7 @@ void ChartController::clearAllDrawings() {
     QList<QGraphicsItem*> items = m_scene->items();
     for (QGraphicsItem *item : items) {
         // Excluir la carta de fondo y las herramientas overlay
-        if (item != m_chartImage && item != m_protractor && item != m_ruler) {
+        if (item != m_chartImage && item != m_protractor && item != m_ruler && item != m_compass) {
             m_scene->removeItem(item);
             delete item;
         }
@@ -205,7 +213,7 @@ void ChartController::clearAllDrawings() {
 void ChartController::deleteSelectedItems() {
     QList<QGraphicsItem*> selected = m_scene->selectedItems();
     for (QGraphicsItem *item : selected) {
-        if (item != m_chartImage && item != m_protractor && item != m_ruler) {
+        if (item != m_chartImage && item != m_protractor && item != m_ruler && item != m_compass) {
             m_scene->removeItem(item);
             delete item;
         }
@@ -491,6 +499,59 @@ double ChartController::rulerAngle() const {
     return m_ruler ? m_ruler->angle() : 0.0;
 }
 
+void ChartController::showCompass(bool visible) {
+    if (visible && !m_compass) {
+        // Crear compás interactivo
+        m_compass = new DraggableCompass();
+        m_scene->addItem(m_compass);
+        
+        // Posicionar en el centro de la vista
+        QRectF sceneRect = m_scene->sceneRect();
+        m_compass->setPos(sceneRect.center());
+        
+        // Configurar estilos actuales
+        m_compass->setColor(m_strokeColor);
+        m_compass->setStrokeWidth(m_strokeWidth);
+        
+        // Conectar señales
+        connect(m_compass, &DraggableCompass::arcCompleted,
+                this, &ChartController::onArcCompleted);
+        connect(m_compass, &DraggableCompass::angleChanged,
+                this, &ChartController::angleChanged);
+                
+    } else if (!visible && m_compass) {
+        m_scene->removeItem(m_compass);
+        delete m_compass;
+        m_compass = nullptr;
+    }
+}
+
+bool ChartController::isCompassVisible() const {
+    return m_compass != nullptr;
+}
+
+void ChartController::setCompassRadius(double radius) {
+    if (m_compass) {
+        m_compass->setRadius(radius);
+    }
+}
+
+double ChartController::compassRadius() const {
+    return m_compass ? m_compass->radius() : 100.0;
+}
+
+void ChartController::onArcCompleted(const QPainterPath &path, const QColor &color, int width) {
+    if (path.isEmpty()) return;
+    
+    QPen pen(color, width);
+    pen.setCapStyle(Qt::RoundCap);
+    
+    QGraphicsPathItem *arcItem = m_scene->addPath(path, pen);
+    arcItem->setFlag(QGraphicsItem::ItemIsSelectable);
+    m_undoStack.push(arcItem);
+    emit itemAdded(arcItem);
+}
+
 // === MÉTODOS PRIVADOS ===
 
 void ChartController::createPoint(const QPointF &pos) {
@@ -629,7 +690,7 @@ void ChartController::eraseItemAt(const QPointF &pos) {
     QList<QGraphicsItem*> items = m_scene->items(pos);
     for (QGraphicsItem *item : items) {
         // Excluir la carta de fondo y las herramientas overlay
-        if (item != m_chartImage && item != m_protractor && item != m_ruler) {
+        if (item != m_chartImage && item != m_protractor && item != m_ruler && item != m_compass) {
             m_scene->removeItem(item);
             delete item;
             break;

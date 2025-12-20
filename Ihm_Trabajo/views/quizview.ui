@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>QuizView</class>
- <widget class="QWidget" name="QuizView">
+ <widget class="QDialog" name="QuizView">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>700</width>
+    <height>550</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">

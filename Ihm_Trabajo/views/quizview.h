@@ -1,6 +1,6 @@
 #pragma once
 
-#include <QWidget>
+#include <QDialog>
 #include <QButtonGroup>
 #include "controllers/sessioncontroller.h"
 
@@ -8,7 +8,7 @@ namespace Ui {
 class QuizView;
 }
 
-class QuizView : public QWidget
+class QuizView : public QDialog
 {
     Q_OBJECT
 
@@ -55,4 +55,5 @@ private:
     void updateProblemView();
     void showFeedback(bool correct);
     void clearFeedback();
+    void updateAnswerStyles();
 };
