@@ -77,9 +77,9 @@ void Navigation::loadFromDb() {
     m_users = m_dao.loadUsers();
     m_problems = m_dao.loadProblems();
     
-    // Si no hay problemas, intentar cargar desde JSON
+    // Si no hay problemas, cargar desde JSON embebido en recursos (siempre disponible)
     if (m_problems.isEmpty()) {
-        m_dao.importProblemsFromJson("problems.json"); 
+        m_dao.importProblemsFromJson(":/problems.json"); 
         // Recargar desde DB para tener los IDs correctos si importamos
         m_problems = m_dao.loadProblems();
     }

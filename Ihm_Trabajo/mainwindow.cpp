@@ -476,6 +476,14 @@ void MainWindow::setupConnections() {
     connect(ui->goToRegisterButton, &QPushButton::clicked, this,
             &MainWindow::onShowRegister);
 
+    // Limpiar error al escribir de nuevo
+    connect(ui->nickEdit, &QLineEdit::textChanged, this, [this]() {
+        ui->loginErrorLabel->clear();
+    });
+    connect(ui->passwordEdit, &QLineEdit::textChanged, this, [this]() {
+        ui->loginErrorLabel->clear();
+    });
+
     // === Login Controller ===
     connect(m_loginController, &LoginController::loginSuccessful, this,
             &MainWindow::onLoginSuccessful);

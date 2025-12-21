@@ -9,6 +9,9 @@
 #include <QFrame>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QPushButton>
+#include <QMessageBox>
+#include <QIcon>
 
 ChartWidget::ChartWidget(QWidget *parent)
     : QGraphicsView(parent)
@@ -91,13 +94,25 @@ ChartWidget::~ChartWidget() {
 void ChartWidget::mousePressEvent(QMouseEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
-    // Para herramientas overlay (Transportador/Regla/Compás), dejar que los items manejen el evento
+    // Para herramientas overlay (Transportador/Regla/Compás)
     if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
-        // Verificar si el click está sobre un item de la escena
+        // Verificar si el click está sobre la herramienta overlay
         QGraphicsItem *item = itemAt(event->pos());
-        if (item) {
-            // Dejar que QGraphicsView pase el evento al item
+        
+        // Si estamos sobre la herramienta, dejar que ella maneje el evento
+        if (item && (item == m_controller->protractorItem() || 
+                     item == m_controller->rulerItem() || 
+                     item == m_controller->compassItem())) {
             QGraphicsView::mousePressEvent(event);
+            return;
+        }
+        
+        // Si NO estamos sobre la herramienta, permitir pan/moverse
+        if (event->button() == Qt::LeftButton) {
+            m_isPanning = true;
+            m_lastPanPoint = event->pos();
+            setCursor(Qt::ClosedHandCursor);
+            event->accept();
             return;
         }
     }
@@ -129,8 +144,18 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
     // Siempre informar coordenadas al controller
     m_controller->handleMouseMoveAt(scenePos);
     
-    // Para herramientas overlay, dejar que los items manejen el drag
+    // Para herramientas overlay: si estamos panning, hacer pan; si no, delegar
     if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
+        if (m_isPanning) {
+            // Hacer pan aunque haya herramienta overlay
+            QPoint delta = event->pos() - m_lastPanPoint;
+            m_lastPanPoint = event->pos();
+            horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
+            verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
+            event->accept();
+            return;
+        }
+        // Si no estamos panning, dejar que los items manejen el drag
         QGraphicsView::mouseMoveEvent(event);
         return;
     }
@@ -150,34 +175,38 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
 void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
+    // Primero manejar pan (puede estar activo incluso con herramientas overlay)
+    if (m_isPanning) {
+        m_isPanning = false;
+        setCursor(Qt::ArrowCursor);
+        event->accept();
+        return;
+    }
+    
     // Para herramientas overlay, dejar que los items manejen el release
     if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
         QGraphicsView::mouseReleaseEvent(event);
         return;
     }
     
-    if (m_isPanning) {
-        m_isPanning = false;
-        setCursor(Qt::OpenHandCursor);
-        event->accept();
-    } else {
-        QPointF scenePos = mapToScene(event->pos());
-        m_controller->handleMouseReleaseAt(scenePos, event->button());
-        event->accept();
-    }
+    QPointF scenePos = mapToScene(event->pos());
+    m_controller->handleMouseReleaseAt(scenePos, event->button());
+    event->accept();
 }
 
 void ChartWidget::wheelEvent(QWheelEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
-    // Si es transportador o regla, delegar rotación al controller
-    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler) {
-        m_controller->handleWheelDelta(event->angleDelta().y());
-        event->accept();
-        return;
+    // Ctrl + Rueda = rotar herramienta (transportador/regla)
+    if (event->modifiers() & Qt::ControlModifier) {
+        if (tool == ToolMode::Protractor || tool == ToolMode::Ruler) {
+            m_controller->handleWheelDelta(event->angleDelta().y());
+            event->accept();
+            return;
+        }
     }
     
-    // Zoom centrado en la posición del ratón
+    // Rueda normal = Zoom (siempre)
     int delta = event->angleDelta().y();
     double scaleFactor = (delta > 0) ? 1.25 : 0.8;
     double newZoom = m_currentZoom * scaleFactor;
@@ -250,7 +279,11 @@ void ChartWidget::keyReleaseEvent(QKeyEvent *event) {
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {
     QGraphicsView::resizeEvent(event);
-    // Opcionalmente centrar la carta al redimensionar
+    
+    // Reposicionar el indicador de herramienta en la esquina derecha
+    if (m_toolIndicator) {
+        m_toolIndicator->move(width() - m_toolIndicator->width() - 15, 15);
+    }
 }
 
 void ChartWidget::onZoomChanged(double factor) {
@@ -339,8 +372,28 @@ void ChartWidget::setupToolIndicator() {
     
     layout->addWidget(propsWidget);
     
-    // Posicionar el indicador
+    // --- ICONO DE INFORMACIÓN (i) ---
+    m_helpButton = new QPushButton(m_toolIndicator);
+    m_helpButton->setFixedSize(24, 24);
+    m_helpButton->setCursor(Qt::PointingHandCursor);
+    m_helpButton->setIcon(QIcon(":/resources/icons/info_icon.svg"));
+    m_helpButton->setIconSize(QSize(20, 20));
+    m_helpButton->setStyleSheet(R"(
+        QPushButton {
+            background: transparent;
+            border: none;
+        }
+        QPushButton:hover {
+            background-color: rgba(52, 152, 219, 0.3);
+            border-radius: 12px;
+        }
+    )");
+    connect(m_helpButton, &QPushButton::clicked, this, &ChartWidget::showToolHelp);
+    layout->addWidget(m_helpButton);
+    
+    // Posicionar el indicador en la esquina derecha (posición inicial)
     m_toolIndicator->adjustSize();
+    // Inicialmente posicionarlo a la izquierda, se reposicionará en resizeEvent
     m_toolIndicator->move(15, 15);
     m_toolIndicator->raise();
 }
@@ -352,6 +405,7 @@ void ChartWidget::updateToolIndicator(const QString &toolName, const QColor &col
     if (!toolName.isEmpty()) {
         m_toolLabel->setVisible(true); // Asegurar visibilidad
         m_toolLabel->setText(toolName);
+        m_currentToolName = toolName;  // Guardar para el botón de ayuda
     }
     
     // Gestionar visibilidad del panel de propiedades
@@ -368,10 +422,105 @@ void ChartWidget::updateToolIndicator(const QString &toolName, const QColor &col
         m_toolWidthLabel->setText(QString("%1px").arg(width));
     }
     
-    // Ajustar tamaño del layout
+    // Ajustar tamaño del layout y reposicionar en esquina derecha
     m_toolIndicator->adjustSize();
+    int viewWidth = this->width();
+    m_toolIndicator->move(viewWidth - m_toolIndicator->width() - 15, 15);
     m_toolIndicator->show();
     m_toolIndicator->raise();
     m_toolIndicator->update();
 }
 
+void ChartWidget::showToolHelp() {
+    QString helpText = getToolHelpText(m_currentToolName);
+    
+    QMessageBox helpBox(this);
+    helpBox.setWindowTitle("Ayuda: " + m_currentToolName);
+    helpBox.setText(helpText);
+    helpBox.setIcon(QMessageBox::Information);
+    helpBox.setStyleSheet(R"(
+        QMessageBox {
+            background-color: #1a1a1a;
+        }
+        QMessageBox QLabel {
+            color: #ffffff;
+            font-size: 13px;
+        }
+        QPushButton {
+            background-color: #3498db;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+        }
+        QPushButton:hover {
+            background-color: #2980b9;
+        }
+    )");
+    helpBox.exec();
+}
+
+QString ChartWidget::getToolHelpText(const QString &toolName) {
+    if (toolName == "Moverse") {
+        return "<b>Herramienta Mover (Mano)</b><br><br>"
+               "• <b>Arrastrar:</b> Mueve la carta náutica<br>"
+               "• <b>Rueda del ratón:</b> Zoom in/out<br>"
+               "• <b>+/-:</b> Zoom con teclado<br>"
+               "• <b>0:</b> Resetear zoom";
+    }
+    else if (toolName == "Selecciona") {
+        return "<b>Herramienta Seleccionar</b><br><br>"
+               "• <b>Clic:</b> Selecciona un elemento<br>"
+               "• <b>Clic en vacío:</b> Deselecciona<br>"
+               "• <b>Delete/Supr:</b> Borra el elemento seleccionado<br>"
+               "• Al seleccionar aparece un popup para editar propiedades";
+    }
+    else if (toolName == "Punto") {
+        return "<b>Herramienta Punto</b><br><br>"
+               "• <b>Clic:</b> Coloca un punto en la carta<br>"
+               "• Usa el popup central para cambiar color y tamaño<br>"
+               "• <b>Mostrar Proyecciones:</b> Dibuja líneas hasta los ejes";
+    }
+    else if (toolName == "Línea") {
+        return "<b>Herramienta Línea</b><br><br>"
+               "• <b>Primer clic:</b> Punto inicial de la línea<br>"
+               "• <b>Segundo clic:</b> Punto final de la línea<br>"
+               "• Usa el popup central para cambiar color y grosor";
+    }
+    else if (toolName == "Arco") {
+        return "<b>Herramienta Compás/Arco</b><br><br>"
+               "• <b>Shift + Arrastrar:</b> Mover el compás<br>"
+               "• <b>Arrastrar:</b> Rotar el compás<br>"
+               "• <b>Clic derecho + Arrastrar:</b> Dibujar arco<br>"
+               "• Usa el slider de Radio en el popup para ajustar tamaño";
+    }
+    else if (toolName == "Texto") {
+        return "<b>Herramienta Texto</b><br><br>"
+               "• <b>Clic:</b> Coloca texto en ese punto<br>"
+               "• Aparecerá un cuadro para escribir el texto<br>"
+               "• Usa el popup para cambiar fuente, tamaño y estilo (negrita, cursiva, tachado)";
+    }
+    else if (toolName == "Borrador") {
+        return "<b>Herramienta Borrador</b><br><br>"
+               "• <b>Clic sobre un elemento:</b> Lo borra<br>"
+               "• Funciona con puntos, líneas, arcos y textos";
+    }
+    else if (toolName == "Transportador") {
+        return "<b>Herramienta Transportador</b><br><br>"
+               "• <b>Shift + Arrastrar:</b> Mover el transportador<br>"
+               "• <b>Arrastrar:</b> Rotar el transportador<br>"
+               "• <b>Rueda del ratón:</b> Rotación fina<br>"
+               "• El ángulo se muestra en la barra de estado";
+    }
+    else if (toolName == "Regla") {
+        return "<b>Herramienta Regla</b><br><br>"
+               "• <b>Shift + Arrastrar:</b> Mover la regla<br>"
+               "• <b>Arrastrar:</b> Rotar la regla<br>"
+               "• <b>Rueda del ratón:</b> Rotación fina<br>"
+               "• Usa los bordes para medir distancias en millas náuticas";
+    }
+    else {
+        return "<b>" + toolName + "</b><br><br>"
+               "Selecciona una herramienta para ver instrucciones de uso.";
+    }
+}

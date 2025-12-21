@@ -20,8 +20,12 @@ DraggableCompass::DraggableCompass(QGraphicsItem *parent)
 }
 
 QRectF DraggableCompass::boundingRect() const {
-    // El bounding rect debe incluir el círculo de preview y el compass leg
+    // El bounding rect debe incluir el círculo de preview, compass leg e indicador
     double margin = m_strokeWidth + 30;
+    // Si el indicador está visible, necesitamos más espacio
+    if (m_showIndicator) {
+        margin = 120;  // Espacio para flechas y texto del indicador
+    }
     return QRectF(-m_radius - margin, -m_radius - margin,
                   2 * m_radius + 2 * margin, 2 * m_radius + 2 * margin);
 }
@@ -120,6 +124,14 @@ void DraggableCompass::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         painter->drawText(QRectF(-100, m_radius + 15, 200, 25), 
                           Qt::AlignCenter, "Clic derecho = dibujar arco");
     }
+    
+    // 7. Indicador grande (solo visible inicialmente, desaparece al usar)
+    if (m_showIndicator) {
+        // Solo círculo rojo semi-transparente para destacar
+        painter->setBrush(QColor(233, 69, 96, 60));  // Color rosa-rojo transparente
+        painter->setPen(QPen(QColor(233, 69, 96), 4));
+        painter->drawEllipse(QPointF(0, 0), m_radius + 40, m_radius + 40);
+    }
 }
 
 void DraggableCompass::setRadius(double r) {
@@ -168,6 +180,12 @@ double DraggableCompass::angleToPoint(const QPointF &pos) const {
 }
 
 void DraggableCompass::mousePressEvent(QGraphicsSceneMouseEvent *event) {
+    // Ocultar indicador al interactuar
+    if (m_showIndicator) {
+        m_showIndicator = false;
+        update();
+    }
+    
     QPointF localPos = event->pos();
     
     if (event->button() == Qt::LeftButton) {

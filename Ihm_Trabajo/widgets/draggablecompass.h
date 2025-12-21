@@ -63,10 +63,13 @@ protected:
 
 private:
     // Estado
-    double m_radius = 100.0;
+    double m_radius = 200.0;  // Radio inicial más grande
     double m_angle = 0.0;
     QColor m_strokeColor = QColor("#e94560");
     int m_strokeWidth = 3;
+    
+    // Indicador inicial (desaparece al usar)
+    bool m_showIndicator = true;
     
     // Interacción
     bool m_isDragging = false;

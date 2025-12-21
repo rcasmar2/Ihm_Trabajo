@@ -309,6 +309,11 @@ void ChartController::setCalibrationPoints(const QPointF &pixel1, const GeoCoord
 
 void ChartController::setStrokeColor(const QColor &color) {
     m_strokeColor = color;
+    
+    // Actualizar compás si está visible
+    if (m_compass) {
+        m_compass->setColor(color);
+    }
 
     // Actualizar elementos seleccionados (Req 3.5)
     for (QGraphicsItem *item : m_scene->selectedItems()) {
@@ -333,6 +338,11 @@ void ChartController::setStrokeColor(const QColor &color) {
 
 void ChartController::setStrokeWidth(int width) {
     m_strokeWidth = qBound(1, width, 100);
+    
+    // Actualizar compás si está visible
+    if (m_compass) {
+        m_compass->setStrokeWidth(width);
+    }
 
     // Actualizar elementos seleccionados (Req 3.5)
     for (QGraphicsItem *item : m_scene->selectedItems()) {
@@ -538,6 +548,18 @@ void ChartController::setCompassRadius(double radius) {
 
 double ChartController::compassRadius() const {
     return m_compass ? m_compass->radius() : 100.0;
+}
+
+QGraphicsItem* ChartController::protractorItem() const {
+    return m_protractor;
+}
+
+QGraphicsItem* ChartController::rulerItem() const {
+    return m_ruler;
+}
+
+QGraphicsItem* ChartController::compassItem() const {
+    return m_compass;
 }
 
 void ChartController::onArcCompleted(const QPainterPath &path, const QColor &color, int width) {

@@ -9,6 +9,8 @@ class QGraphicsScene;
 class QFrame;
 class QLabel;
 
+class QPushButton;
+
 /**
  * ChartWidget - QGraphicsView personalizado para la carta náutica
  * 
@@ -56,10 +58,14 @@ private:
     QLabel *m_toolLabel = nullptr;
     QLabel *m_toolColorPreview = nullptr;
     QLabel *m_toolWidthLabel = nullptr;
+    QPushButton *m_helpButton = nullptr;
+    QString m_currentToolName;
 
     void applyZoomAtPoint(double factor, const QPoint &viewPos);
     void centerOnChart();
     void setupToolIndicator();
+    void showToolHelp();
+    QString getToolHelpText(const QString &toolName);
 
 private slots:
     void onZoomChanged(double factor);

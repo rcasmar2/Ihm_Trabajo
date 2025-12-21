@@ -89,6 +89,11 @@ public:
     // === COMPÁS ===
     void setCompassRadius(double radius);  // NUEVO
     double compassRadius() const;          // NUEVO
+    
+    // === ACCESO A ITEMS OVERLAY (para ChartWidget) ===
+    QGraphicsItem* protractorItem() const;
+    QGraphicsItem* rulerItem() const;
+    QGraphicsItem* compassItem() const;
 
 signals:
     void toolChanged(ToolMode newTool);

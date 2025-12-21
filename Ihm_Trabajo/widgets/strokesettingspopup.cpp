@@ -14,7 +14,9 @@
 #include <QPainterPath>
 #include <QEvent>
 #include <QFontComboBox>
-#include <QComboBox> // NECESARIO
+#include <QComboBox>
+#include <QScreen>
+#include <QGuiApplication>
 
 StrokeSettingsPopup::StrokeSettingsPopup(QWidget *parent)
     : QWidget(parent, Qt::Tool | Qt::FramelessWindowHint | Qt::NoDropShadowWindowHint | Qt::WindowStaysOnTopHint)
@@ -521,11 +523,31 @@ void StrokeSettingsPopup::setStrokeWidth(int width) {
 }
 
 void StrokeSettingsPopup::showNear(QWidget *anchor) {
+    // Centrar verticalmente, pegado a la barra de herramientas (izquierda)
+    adjustSize();
+    
+    QScreen *screen = nullptr;
     if (anchor) {
-        // Más separación de la barra lateral (30px en lugar de 10px)
-        QPoint globalPos = anchor->mapToGlobal(QPoint(anchor->width() + 30, 0));
-        move(globalPos);
+        screen = anchor->screen();
     }
+    if (!screen) {
+        screen = QGuiApplication::primaryScreen();
+    }
+    
+    QRect screenGeometry = screen->availableGeometry();
+    
+    // X: Pegado a la barra de herramientas (aproximadamente 100px desde la izquierda)
+    int popupX = 100;
+    if (anchor) {
+        // Posicionar justo a la derecha del anchor (barra de herramientas)
+        QPoint anchorGlobal = anchor->mapToGlobal(QPoint(anchor->width(), 0));
+        popupX = anchorGlobal.x() + 20;
+    }
+    
+    // Y: Centrado verticalmente en la pantalla
+    int popupY = screenGeometry.top() + (screenGeometry.height() - height()) / 2;
+    
+    move(popupX, popupY);
     show();
     raise();
 }
