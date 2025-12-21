@@ -94,20 +94,27 @@ ChartWidget::~ChartWidget() {
 void ChartWidget::mousePressEvent(QMouseEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
-    // Para herramientas overlay (Transportador/Regla/Compás)
-    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
+    // Para herramientas overlay (Transportador/Regla/Línea/Compás)
+    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || 
+        tool == ToolMode::Line || tool == ToolMode::Arc) {
+        
         // Verificar si el click está sobre la herramienta overlay
         QGraphicsItem *item = itemAt(event->pos());
+        QGraphicsItem *topItem = item ? item->topLevelItem() : nullptr;
         
-        // Si estamos sobre la herramienta, dejar que ella maneje el evento
-        if (item && (item == m_controller->protractorItem() || 
-                     item == m_controller->rulerItem() || 
-                     item == m_controller->compassItem())) {
+        // Si estamos sobre la herramienta (o uno de sus hijos, como el marcador), 
+        // dejar que ella maneje el evento
+        if (topItem && (topItem == m_controller->protractorItem() || 
+                        topItem == m_controller->rulerItem() || 
+                        topItem == m_controller->compassItem())) {
             QGraphicsView::mousePressEvent(event);
             return;
         }
         
-        // Si NO estamos sobre la herramienta, permitir pan/moverse
+        // (Eliminado dibujo con clic derecho externo por petición del usuario)
+
+        
+        // Si NO estamos sobre la herramienta, permitir pan/moverse con clic izquierdo
         if (event->button() == Qt::LeftButton) {
             m_isPanning = true;
             m_lastPanPoint = event->pos();
@@ -145,7 +152,8 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
     m_controller->handleMouseMoveAt(scenePos);
     
     // Para herramientas overlay: si estamos panning, hacer pan; si no, delegar
-    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
+    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || 
+        tool == ToolMode::Line || tool == ToolMode::Arc) {
         if (m_isPanning) {
             // Hacer pan aunque haya herramienta overlay
             QPoint delta = event->pos() - m_lastPanPoint;
@@ -184,7 +192,8 @@ void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
     }
     
     // Para herramientas overlay, dejar que los items manejen el release
-    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Arc) {
+    if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || 
+        tool == ToolMode::Line || tool == ToolMode::Arc) {
         QGraphicsView::mouseReleaseEvent(event);
         return;
     }
@@ -197,9 +206,9 @@ void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
 void ChartWidget::wheelEvent(QWheelEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
-    // Ctrl + Rueda = rotar herramienta (transportador/regla)
+    // Ctrl + Rueda = rotar herramienta (transportador/regla/línea)
     if (event->modifiers() & Qt::ControlModifier) {
-        if (tool == ToolMode::Protractor || tool == ToolMode::Ruler) {
+        if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Line) {
             m_controller->handleWheelDelta(event->angleDelta().y());
             event->accept();
             return;
@@ -483,9 +492,9 @@ QString ChartWidget::getToolHelpText(const QString &toolName) {
     }
     else if (toolName == "Línea") {
         return "<b>Herramienta Línea</b><br><br>"
-               "• <b>Primer clic:</b> Punto inicial de la línea<br>"
-               "• <b>Segundo clic:</b> Punto final de la línea<br>"
-               "• Usa el popup central para cambiar color y grosor";
+               "1. <b>Posiciona:</b> Arrastra para mover<br>"
+               "2. <b>Rota:</b> Arrastra el icono ↻, mueve extremos o <b>Ctrl + Rueda</b><br>"
+               "3. <b>Dibuja:</b> Clic derecho + Arrastrar el marcador rojo";
     }
     else if (toolName == "Arco") {
         return "<b>Herramienta Compás/Arco</b><br><br>"
@@ -507,17 +516,15 @@ QString ChartWidget::getToolHelpText(const QString &toolName) {
     }
     else if (toolName == "Transportador") {
         return "<b>Herramienta Transportador</b><br><br>"
-               "• <b>Shift + Arrastrar:</b> Mover el transportador<br>"
-               "• <b>Arrastrar:</b> Rotar el transportador<br>"
-               "• <b>Rueda del ratón:</b> Rotación fina<br>"
-               "• El ángulo se muestra en la barra de estado";
+               "• <b>Arrastrar centro:</b> Mover<br>"
+               "• <b>Rota:</b> Arrastra el icono ↻, arrastrar borde o <b>Ctrl + Rueda</b><br>"
+               "• El ángulo actual se muestra en pantalla";
     }
     else if (toolName == "Regla") {
         return "<b>Herramienta Regla</b><br><br>"
-               "• <b>Shift + Arrastrar:</b> Mover la regla<br>"
-               "• <b>Arrastrar:</b> Rotar la regla<br>"
-               "• <b>Rueda del ratón:</b> Rotación fina<br>"
-               "• Usa los bordes para medir distancias en millas náuticas";
+               "• <b>Arrastrar centro:</b> Mover la regla<br>"
+               "• <b>Rota:</b> Arrastra el icono ↻, extremos o <b>Ctrl + Rueda</b><br>"
+               "• Usa los bordes para medir distancias";
     }
     else {
         return "<b>" + toolName + "</b><br><br>"

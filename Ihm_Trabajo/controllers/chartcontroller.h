@@ -94,6 +94,11 @@ public:
     QGraphicsItem* protractorItem() const;
     QGraphicsItem* rulerItem() const;
     QGraphicsItem* compassItem() const;
+    
+    // === DIBUJO DESDE REGLA ===
+    void drawSegmentFromRuler(const QPointF &startPos, const QPointF &endPos);
+    void drawSegmentPreview(const QPointF &startPos, const QPointF &endPos);
+    void removeSegmentPreview(); // Para limpiar el preview al terminar
 
 signals:
     void toolChanged(ToolMode newTool);

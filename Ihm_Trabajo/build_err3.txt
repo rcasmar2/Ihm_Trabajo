@@ -1,0 +1,4 @@
+﻿C:/Qt/Tools/mingw1310_64/bin/mingw32-make -f Makefile.Release
+mingw32-make[1]: Entering directory 'C:/Users/PC/Ihm_Trabajo/Ihm_Trabajo'
+mingw32-make[1]: Nothing to be done for 'first'.
+mingw32-make[1]: Leaving directory 'C:/Users/PC/Ihm_Trabajo/Ihm_Trabajo'

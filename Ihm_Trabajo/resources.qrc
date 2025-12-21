@@ -21,6 +21,7 @@
         <file>resources/icons/transportador_icon_bar.svg</file>
         <file>resources/icons/compass_icon_bar.svg</file>
         <file>resources/icons/info_icon.svg</file>
+        <file>resources/icons/rotate_icon.svg</file>
         <file>resources/styles/style.qss</file>
         <file>problems.json</file>
     </qresource>

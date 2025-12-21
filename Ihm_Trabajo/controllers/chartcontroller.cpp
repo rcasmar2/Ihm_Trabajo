@@ -86,7 +86,8 @@ void ChartController::setTool(ToolMode mode) {
             showProtractor(true);
             showRuler(false);
             showCompass(false);
-        } else if (mode == ToolMode::Ruler) {
+        } else if (mode == ToolMode::Ruler || mode == ToolMode::Line) {
+            // Línea y Regla usan la misma herramienta visual (regla SVG)
             showRuler(true);
             showProtractor(false);
             showCompass(false);
@@ -182,8 +183,8 @@ void ChartController::handleWheelDelta(int delta) {
         // Rotar transportador con la rueda
         double angleDelta = delta / 12.0;
         rotateProtractor(angleDelta);
-    } else if (m_currentTool == ToolMode::Ruler && m_ruler) {
-        // Rotar regla con la rueda
+    } else if ((m_currentTool == ToolMode::Ruler || m_currentTool == ToolMode::Line) && m_ruler) {
+        // Rotar regla con la rueda (también en modo Línea)
         double angleDelta = delta / 12.0;
         rotateRuler(angleDelta);
     } else {
@@ -313,6 +314,11 @@ void ChartController::setStrokeColor(const QColor &color) {
     // Actualizar compás si está visible
     if (m_compass) {
         m_compass->setColor(color);
+    }
+    
+    // Actualizar regla si está visible
+    if (m_ruler) {
+        m_ruler->setMarkerColor(color);
     }
 
     // Actualizar elementos seleccionados (Req 3.5)
@@ -470,14 +476,75 @@ void ChartController::showRuler(bool visible) {
             sceneRect.center().y() - bounds.height() / 2
         );
         
+        m_ruler->setMarkerColor(m_strokeColor); // <--- COLOR INICIAL
+        
         // Conectar señal de ángulo
         connect(m_ruler, &DraggableRuler::angleChanged,
                 this, &ChartController::angleChanged);
+                
+        // Conectar señales de dibujo de segmento
+        connect(m_ruler, &DraggableRuler::drawSegmentRequested,
+                this, &ChartController::drawSegmentFromRuler);
+                
+        connect(m_ruler, &DraggableRuler::segmentPreviewRequested,
+                this, &ChartController::drawSegmentPreview);
                 
     } else if (!visible && m_ruler) {
         m_scene->removeItem(m_ruler);
         delete m_ruler;
         m_ruler = nullptr;
+    }
+}
+
+// ... [omitido]
+
+void ChartController::drawSegmentFromRuler(const QPointF &startPos, const QPointF &endPos) {
+    // Si hay un preview, eliminarlo
+    if (m_currentDrawingItem) {
+        m_scene->removeItem(m_currentDrawingItem);
+        delete m_currentDrawingItem;
+        m_currentDrawingItem = nullptr;
+    }
+    
+    // Crear la línea con el estilo actual
+    QPen pen(m_strokeColor, m_strokeWidth);
+    pen.setStyle(Qt::SolidLine);
+    pen.setCapStyle(Qt::RoundCap);
+    
+    QGraphicsLineItem *line = m_scene->addLine(
+        startPos.x(), startPos.y(),
+        endPos.x(), endPos.y(),
+        pen
+    );
+    
+    line->setFlag(QGraphicsItem::ItemIsSelectable);
+    m_undoStack.push(line);
+    emit itemAdded(line);
+}
+
+void ChartController::drawSegmentPreview(const QPointF &startPos, const QPointF &endPos) {
+    if (m_currentDrawingItem) {
+        m_scene->removeItem(m_currentDrawingItem);
+        delete m_currentDrawingItem;
+    }
+    
+    // Línea de preview (puede ser un poco más fina o semi-transparente)
+    QPen pen(m_strokeColor, m_strokeWidth);
+    pen.setStyle(Qt::DashLine); // Estilo temporal
+    
+    QGraphicsLineItem *line = m_scene->addLine(
+        startPos.x(), startPos.y(),
+        endPos.x(), endPos.y(),
+        pen
+    );
+    m_currentDrawingItem = line;
+}
+
+void ChartController::removeSegmentPreview() {
+    if (m_currentDrawingItem) {
+        m_scene->removeItem(m_currentDrawingItem);
+        delete m_currentDrawingItem;
+        m_currentDrawingItem = nullptr;
     }
 }
 
@@ -561,6 +628,8 @@ QGraphicsItem* ChartController::rulerItem() const {
 QGraphicsItem* ChartController::compassItem() const {
     return m_compass;
 }
+
+// (drawLineFromRuler eliminado)
 
 void ChartController::onArcCompleted(const QPainterPath &path, const QColor &color, int width) {
     if (path.isEmpty()) return;

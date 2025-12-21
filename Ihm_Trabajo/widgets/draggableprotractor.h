@@ -4,6 +4,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsSceneWheelEvent>
 
+class RotationHandle;
+
 /**
  * DraggableProtractor - Transportador de ángulos interactivo
  * 
@@ -39,6 +41,10 @@ private:
     double m_angle = 0.0;
     QPointF m_dragStart;
     bool m_isDragging = false;
+    
+    // Icono de rotación
+    RotationHandle *m_rotateHandle = nullptr;
+    void updateRotateHandlePosition();
 
     void updateTransformOrigin();
 };
