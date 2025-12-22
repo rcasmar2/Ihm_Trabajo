@@ -32,106 +32,110 @@ QT_END_NAMESPACE
  * - Menús y acciones
  * - Barra de estado con coordenadas y zoom
  */
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class MainWindow : public QMainWindow {
+  Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+  MainWindow(QWidget *parent = nullptr);
+  ~MainWindow();
 
 private slots:
-    // Login
-    void onLoginClicked();
-    void onLoginSuccessful(User *user);
-    void onLoginFailed(const QString &reason);
-    void onShowRegister();
+  // Login
+  void onLoginClicked();
+  void onLoginSuccessful(User *user);
+  void onLoginFailed(const QString &reason);
+  void onShowRegister();
 
-    // Register
-    void onRegisterClicked();
-    void onRegistrationSuccessful();
-    void onRegistrationFailed(const QString &reason);
-    void onBackToLogin();
+  // Register
+  void onRegisterClicked();
+  void onRegistrationSuccessful();
+  void onRegistrationFailed(const QString &reason);
+  void onBackToLogin();
 
-    // Sesión
-    void onLogout();
+  // Sesión
+  void onLogout();
 
-    // Herramientas de navegación
-    void onToolPanClicked();
-    void onZoomIn();
-    void onZoomOut();
-    void onZoomReset();
+  // Herramientas de navegación
+  void onToolPanClicked();
+  void onZoomIn();
+  void onZoomOut();
+  void onZoomReset();
 
-    // Herramientas de dibujo
-    void onToolPointClicked();
-    void onToolLineClicked();
-    void onToolArcClicked();
-    void onToolTextClicked();
-    void onToolEraserClicked();
+  // Herramientas de dibujo
+  void onToolPointClicked();
+  void onToolLineClicked();
+  void onToolArcClicked();
+  void onToolTextClicked();
+  void onToolEraserClicked();
 
-    // Herramientas de medición
-    void onToolProtractorClicked();
-    void onToolRulerClicked();
+  // Herramientas de medición
+  void onToolProtractorClicked();
+  void onToolRulerClicked();
 
-    // Acciones
-    void onUndo();
-    void onClearAll();
-    void onStartQuiz();
-    void onToggleProjections(); // Req 3.10
+  // Acciones
+  void onUndo();
+  void onClearAll();
+  void onStartQuiz();
+  void onToggleProjections(); // Req 3.10
 
-    // Carta
-    void onCoordinatesUpdated(double lat, double lon);
-    void onZoomChanged(double factor);
-    void onToolChanged(int toolMode);
-    void onAngleChanged(double angle);
+  // Carta
+  void onCoordinatesUpdated(double lat, double lon);
+  void onZoomChanged(double factor);
+  void onToolChanged(int toolMode);
+  void onAngleChanged(double angle);
 
-    // Menú
-    void onShowStats();
-    void onShowProfile();
-    void onShowManual();
-    void onAbout();
+  // Menú
+  void onShowStats();
+  void onShowProfile();
+  void onShowManual();
+  void onAbout();
 
-    // Stroke Settings
-    void onStrokeColorChanged(const QColor &color);
-    void onStrokeWidthChanged(int width);
-    void showStrokeSettings(QWidget *anchor);
-    void onSelectionChanged(); // NUEVO
+  // Stroke Settings
+  void onStrokeColorChanged(const QColor &color);
+  void onStrokeWidthChanged(int width);
+  void showStrokeSettings(QWidget *anchor);
+  void onSelectionChanged(); // NUEVO
+
+  // Password Visibility
+  void toggleLoginPasswordVisibility();
+  void toggleRegisterPasswordVisibility();
+  void toggleRegisterConfirmPasswordVisibility();
 
 private:
-    Ui::MainWindow *ui;
+  Ui::MainWindow *ui;
 
-    // Controladores
-    LoginController *m_loginController;
-    RegisterController *m_registerController;
-    SessionController *m_sessionController;
-    ProfileController *m_profileController;
+  // Controladores
+  LoginController *m_loginController;
+  RegisterController *m_registerController;
+  SessionController *m_sessionController;
+  ProfileController *m_profileController;
 
-    // Widgets
-    ChartWidget *m_chartWidget;
+  // Widgets
+  ChartWidget *m_chartWidget;
 
-    // UI elements
-    QLabel *m_coordLabel;
-    QLabel *m_zoomLabel;
-    QLabel *m_angleLabel;
-    QButtonGroup *m_toolGroup;
-    StrokeSettingsPopup *m_strokePopup;
-    ProfileView *m_profileView;
-    ResultsView *m_resultsView;
-    QuizView *m_quizView;
+  // UI elements
+  QLabel *m_coordLabel;
+  QLabel *m_zoomLabel;
+  QLabel *m_angleLabel;
+  QButtonGroup *m_toolGroup;
+  StrokeSettingsPopup *m_strokePopup;
+  ProfileView *m_profileView;
+  ResultsView *m_resultsView;
+  QuizView *m_quizView;
 
-    void setupControllers();
-    void setupChartWidget();
-    void setupConnections();
-    void setupToolbar();
-    void setupStatusBar();
-    void setupRegisterValidation(); // New method
-    void setupViews(); // New method
-    void showLoginPage();
-    void showRegisterPage();
-    void showDashboard();
-    void loadChart();
-    void updateToolButtonStates();
-    void updateToolIndicator();
+  void setupControllers();
+  void setupChartWidget();
+  void setupConnections();
+  void setupToolbar();
+  void setupStatusBar();
+  void setupRegisterValidation(); // New method
+  void setupViews();              // New method
+  void showLoginPage();
+  void showRegisterPage();
+  void showDashboard();
+  void loadChart();
+  void updateToolButtonStates();
+  void updateToolIndicator();
 };
 
 #endif // MAINWINDOW_H

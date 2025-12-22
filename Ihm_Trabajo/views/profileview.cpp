@@ -22,7 +22,7 @@ ProfileView::ProfileView(QWidget *parent)
 
   // Password visibility toggle setup can be added here
   QAction *toggleAction = ui->passwordEdit->addAction(
-      QIcon(":/resources/icons/eye.svg"), QLineEdit::TrailingPosition);
+      QIcon(":/resources/icons/eye_closed.svg"), QLineEdit::TrailingPosition);
   connect(toggleAction, &QAction::triggered, this,
           &ProfileView::togglePasswordVisibility);
 
@@ -94,10 +94,16 @@ void ProfileView::onChangeAvatarClicked() {
 }
 
 void ProfileView::togglePasswordVisibility() {
-  if (ui->passwordEdit->echoMode() == QLineEdit::Password) {
-    ui->passwordEdit->setEchoMode(QLineEdit::Normal);
-  } else {
-    ui->passwordEdit->setEchoMode(QLineEdit::Password);
+  QList<QAction *> actions = ui->passwordEdit->actions();
+  if (!actions.isEmpty()) {
+    QAction *toggleAction = actions.last();
+    if (ui->passwordEdit->echoMode() == QLineEdit::Password) {
+      ui->passwordEdit->setEchoMode(QLineEdit::Normal);
+      toggleAction->setIcon(QIcon(":/resources/icons/eye.svg"));
+    } else {
+      ui->passwordEdit->setEchoMode(QLineEdit::Password);
+      toggleAction->setIcon(QIcon(":/resources/icons/eye_closed.svg"));
+    }
   }
 }
 
