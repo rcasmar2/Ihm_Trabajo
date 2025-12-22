@@ -1,8 +1,0 @@
-C:/Qt/Tools/mingw1310_64/bin/mingw32-make -f Makefile.Debug
-mingw32-make[1]: Entering directory 'C:/Users/david/OneDrive - UPV/Escritorio/UPV/GIIROB/TERCERO_GIIROB/IHM/Ihm_Trabajo_2/Ihm_Trabajo/Ihm_Trabajo/build'
-g++ -Wl,-subsystem,windows -mthreads -o debug\Ihm_Trabajo.exe @debug\object_script.Ihm_Trabajo.Debug C:\Qt\6.9.2\mingw_64\lib\libQt6SvgWidgets.a C:\Qt\6.9.2\mingw_64\lib\libQt6Svg.a C:\Qt\6.9.2\mingw_64\lib\libQt6Widgets.a C:\Qt\6.9.2\mingw_64\lib\libQt6Gui.a C:\Qt\6.9.2\mingw_64\lib\libQt6Sql.a C:\Qt\6.9.2\mingw_64\lib\libQt6Core.a -lmingw32 C:\Qt\6.9.2\mingw_64\lib\libQt6EntryPoint.a -lshell32  
-C:/Strawberry/c/bin/../lib/gcc/x86_64-w64-mingw32/13.2.0/../../../../x86_64-w64-mingw32/bin/ld.exe: C:\Qt\6.9.2\mingw_64\lib\libQt6EntryPoint.a(qtentrypoint_win.cpp.obj):qtentrypoint_win.cpp:(.rdata$.refptr.__imp___argc[.refptr.__imp___argc]+0x0): undefined reference to `__imp___argc'
-collect2.exe: error: ld returned 1 exit status
-mingw32-make[1]: *** [Makefile.Debug:137: debug/Ihm_Trabajo.exe] Error 1
-mingw32-make[1]: Leaving directory 'C:/Users/david/OneDrive - UPV/Escritorio/UPV/GIIROB/TERCERO_GIIROB/IHM/Ihm_Trabajo_2/Ihm_Trabajo/Ihm_Trabajo/build'
-mingw32-make: *** [Makefile:45: debug] Error 2
