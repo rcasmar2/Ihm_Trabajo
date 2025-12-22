@@ -59,7 +59,7 @@ void RotationHandle::paint(QPainter *painter, const QStyleOptionGraphicsItem *op
     // Dibujar fondo circular blanco para máxima visibilidad
     painter->save();
     painter->setPen(Qt::NoPen);
-    painter->setBrush(QColor(255, 255, 255, 220)); 
+    painter->setBrush(QColor("#e94560")); // Rojo solicitado 
     
     QRectF b = boundingRect();
     double r = qMin(b.width(), b.height()) / 2.0;

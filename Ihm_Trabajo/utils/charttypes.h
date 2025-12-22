@@ -17,7 +17,8 @@ enum class ToolMode {
     Text,           // Añadir texto
     Eraser,         // Borrar elemento individual
     Protractor,     // Transportador de ángulos
-    Ruler           // Regla para medir distancias
+    Ruler,          // Regla para medir distancias
+    RulerDraw       // Regla con capacidad de dibujo
 };
 
 /**

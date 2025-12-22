@@ -57,11 +57,9 @@ void DraggableCompass::paint(QPainter *painter, const QStyleOptionGraphicsItem *
         // Calcular el rectángulo del arco
         QRectF arcRect(-m_radius, -m_radius, 2 * m_radius, 2 * m_radius);
         
-        // Calcular ángulos para drawArc (Qt usa 1/16 de grado)
-        double start = -m_arcStartAngle; // Qt mide counterclockwise desde las 3h
-        double span = -(m_angle - m_arcStartAngle);
-        
-        painter->drawArc(arcRect, static_cast<int>(start * 16), static_cast<int>(span * 16));
+        // Usar exactamente el mismo path que generamos para guardar
+        QPainterPath path = getArcPath();
+        painter->drawPath(path);
     }
     
     // 3. Dibujar el compass leg SVG (el SVG es horizontal: 200x20)

@@ -207,6 +207,13 @@ void DraggableRuler::setMarkerColor(const QColor &color) {
     }
 }
 
+void DraggableRuler::setDrawingEnabled(bool enabled) {
+    if (m_markerItem) {
+        m_markerItem->setVisible(enabled);
+        m_markerItem->setEnabled(enabled);
+    }
+}
+
 bool DraggableRuler::isNearEdge(const QPointF &localPos) const {
     QRectF bounds = boundingRect();
     double edgeThreshold = bounds.width() * 0.15;

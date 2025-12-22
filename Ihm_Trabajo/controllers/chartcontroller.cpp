@@ -73,6 +73,19 @@ void ChartController::resetZoom() {
 // === HERRAMIENTAS ===
 
 void ChartController::setTool(ToolMode mode) {
+    // Modificación para soportar cambio entre Ruler y RulerDraw sin destruir la regla
+    // Si cambiamos de Ruler -> RulerDraw o viceversa, no entra en el bloque principal if (m_currentTool != mode)
+    // porque ambos son modos diferentes, PERO sí queremos reusar la regla y actualizar el estado de dibujo.
+    
+    // Si ya tenemos regla y cambiamos entre modos de regla:
+    if (m_ruler && (mode == ToolMode::Ruler || mode == ToolMode::RulerDraw) &&
+                   (m_currentTool == ToolMode::Ruler || m_currentTool == ToolMode::RulerDraw)) {
+        m_ruler->setDrawingEnabled(mode == ToolMode::RulerDraw);
+        m_currentTool = mode;
+        emit toolChanged(mode);
+        return;
+    }
+
     if (m_currentTool != mode) {
         if (m_currentDrawingItem) {
             m_scene->removeItem(m_currentDrawingItem);
@@ -80,15 +93,25 @@ void ChartController::setTool(ToolMode mode) {
             m_currentDrawingItem = nullptr;
         }
         m_isDragging = false;
+        
+        // ... switch block rest
 
         // Gestionar visibilidad de herramientas overlay
         if (mode == ToolMode::Protractor) {
             showProtractor(true);
             showRuler(false);
             showCompass(false);
-        } else if (mode == ToolMode::Ruler || mode == ToolMode::Line) {
+        } else if (mode == ToolMode::Ruler || mode == ToolMode::Line || mode == ToolMode::RulerDraw) {
             // Línea y Regla usan la misma herramienta visual (regla SVG)
             showRuler(true);
+            
+            // Configurar si se permite dibujar con la regla (el marcador rojo)
+            if (m_ruler) {
+                // Solo permitir dibujar si es RulerDraw. 
+                // Line mode usa su propio ghost line, no el de la regla (aunque visualmente se parecen)
+                m_ruler->setDrawingEnabled(mode == ToolMode::RulerDraw);
+            }
+
             showProtractor(false);
             showCompass(false);
         } else if (mode == ToolMode::Arc) {
@@ -183,7 +206,7 @@ void ChartController::handleWheelDelta(int delta) {
         // Rotar transportador con la rueda
         double angleDelta = delta / 12.0;
         rotateProtractor(angleDelta);
-    } else if ((m_currentTool == ToolMode::Ruler || m_currentTool == ToolMode::Line) && m_ruler) {
+    } else if ((m_currentTool == ToolMode::Ruler || m_currentTool == ToolMode::Line || m_currentTool == ToolMode::RulerDraw) && m_ruler) {
         // Rotar regla con la rueda (también en modo Línea)
         double angleDelta = delta / 12.0;
         rotateRuler(angleDelta);
@@ -238,6 +261,21 @@ GeoCoord ChartController::getCoordinatesAt(const QPointF &scenePos) const {
         double chartHeight = m_chartImage ? m_chartImage->pixmap().height() : 2000;
         
         // Estrecho de Gibraltar (aproximado)
+        // Calcular los ángulos en grados para drawArc (16ths of degree)
+        // Qt drawArc(x, y, w, h, startAngle, spanAngle)
+        // startAngle es relativo a las 3 en punto (eje X positivo), en sentido antihorario (+).
+        // Nuestros ángulos m_arcStartAngle y m_angle crecen clockwise en pantalla (Y hacia abajo), 
+        // pero qAtan2 devuelve radians normales (antihorario matemático invertido por sistema coordenadas pantalla).
+        // DraggableCompass::angleToPoint usa qAtan2(y, x).
+        // En Qt Graphics View por defecto +Y es abajo. 
+        // qAtan2(y,x) devuelve ángulo positivo horario si Y es abajo.
+        // PERO drawArc usa grados matemáticos estándar (antihorario).
+        
+        // Para simplificar: usaremos path para visualización exacta.
+        // Ocultar lógica anterior que fallaba
+        // double start = -m_arcStartAngle; 
+        // double span = -(m_angle - m_arcStartAngle);
+        // painter->drawArc(arcRect, static_cast<int>(start * 16), static_cast<int>(span * 16));(latTop - latBottom);
         double latTop = 36.33;
         double latBottom = 35.67;
         double lonLeft = -6.0;

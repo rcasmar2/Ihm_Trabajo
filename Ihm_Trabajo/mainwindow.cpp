@@ -1,6 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#include <QKeyEvent>
+
 #include "controllers/chartcontroller.h"
 #include "controllers/logincontroller.h"
 #include "controllers/profilecontroller.h"
@@ -28,6 +30,8 @@
 #include <QPixmap>
 #include <QToolButton>
 #include <QUrl>
+#include <QRandomGenerator>
+#include <QPainter>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_loginController(nullptr),
@@ -103,6 +107,9 @@ void MainWindow::setupToolbar() {
   m_toolGroup->addButton(ui->toolProtractor,
                          static_cast<int>(ToolMode::Protractor));
   m_toolGroup->addButton(ui->toolRuler, static_cast<int>(ToolMode::Ruler));
+  // ID para Ruler Draw será un valor incremental, o usaremos un botón nuevo dynamic
+  // Pero necesitamos asignarle el ID RulerDraw.
+  // Como ui->toolRuler es el botón normal, crearemos uno nuevo para Draw.
 
   // Seleccionar Pan por defecto
   ui->toolPan->setChecked(true);
@@ -136,6 +143,7 @@ void MainWindow::setupToolbar() {
         btn->setText("");
         btn->setIcon(createWhiteIcon(iconPath));
         btn->setIconSize(QSize(24, 24));
+        btn->setFixedSize(60, 50); // Tamaño unificado
         QString style = QString(R"(
             QPushButton {
                 background-color: %1;
@@ -286,6 +294,29 @@ void MainWindow::setupToolbar() {
   setupToolButton(ui->toolText, ":/resources/icons/text.svg");
   setupToolButton(ui->toolEraser, ":/resources/icons/eraser.svg");
 
+  // Botón Regla para DIBUJO (RulerDraw)
+  // Lo añadimos programáticamente ya que no está en el .ui
+  QPushButton *btnRulerDraw = new QPushButton(this);
+  btnRulerDraw->setFixedSize(60, 50); // Unificar tamaño
+  setupToolButton(btnRulerDraw, ":/resources/icons/rule_icon_bar.svg"); // Mismo icono de regla
+  btnRulerDraw->setToolTip("Regla de Trazado (Dibuja líneas)");
+  btnRulerDraw->setCheckable(true);
+  
+  if (auto layout = ui->centralwidget->findChild<QVBoxLayout *>("toolbarVLayout")) {
+      // Insertar en la sección de dibujo (antes del eraser o después)
+      // toolEraser está en el layout.
+      int eraserIndex = layout->indexOf(ui->toolEraser);
+      layout->insertWidget(eraserIndex, btnRulerDraw); 
+  }
+  
+  m_toolGroup->addButton(btnRulerDraw, static_cast<int>(ToolMode::RulerDraw));
+  
+  connect(btnRulerDraw, &QPushButton::clicked, this, [this]() {
+         m_chartWidget->controller()->setTool(ToolMode::RulerDraw);
+         // Mostrar popup de opciones si es necesario (es tool de dibujo)
+         showStrokeSettings(qobject_cast<QWidget*>(sender()));
+  });
+
   // === Botón Herramientas de Medición (Combo) ===
   QToolButton *btnMeasure = new QToolButton(this);
   btnMeasure->setPopupMode(QToolButton::InstantPopup);
@@ -367,10 +398,21 @@ void MainWindow::setupToolbar() {
 
   // Acciones
   setupToolButton(ui->toolUndo, ":/resources/icons/undo-2.svg");
+  ui->toolUndo->setToolTip("Deshacer última acción (Ctrl+Z)");
+  
   setupToolButton(ui->toolClear, ":/resources/icons/trash-2.svg");
+  ui->toolClear->setToolTip("Borrar todos los trazos");
 
+  // Tooltips para herramientas de dibujo (que ya fueron configuradas con setupToolButton arriba)
+  ui->toolPoint->setToolTip("Marcar un punto en la carta");
+  ui->toolLine->setToolTip("Trazar una línea (Rumbo)");
+  ui->toolArc->setToolTip("Dibujar un arco de compás");
+  ui->toolText->setToolTip("Añadir anotaciones de texto");
+  ui->toolEraser->setToolTip("Borrador de elementos");
+  
   // Quiz (naranja con icono negro que contrasta bien)
   ui->toolQuiz->setText("");
+  ui->toolQuiz->setToolTip("Iniciar cuestionario de evaluación");
   ui->toolQuiz->setIcon(QIcon(":/resources/icons/quiz.svg"));
   ui->toolQuiz->setIconSize(QSize(24, 24));
   ui->toolQuiz->setStyleSheet(R"(
@@ -494,6 +536,19 @@ void MainWindow::setupConnections() {
   connect(ui->goToRegisterButton, &QPushButton::clicked, this,
           &MainWindow::onShowRegister);
 
+  // Conectar botón de ayuda del login
+  // Nota: Asumimos que uic ha generado el miembro helpLoginButton, si no, usamos findChild por seguridad
+  if (ui->centralwidget->findChild<QPushButton *>("helpLoginButton")) {
+       connect(ui->centralwidget->findChild<QPushButton *>("helpLoginButton"), &QPushButton::clicked, 
+               this, &MainWindow::onShowLoginHelp);
+  } else {
+      // Fallback si el acceso directo funciona (depende de cómo uic genere el código para widgets anidados)
+      // En muchos casos ui->helpLoginButton existe.
+      // Vamos a intentar conectar dinámicamente para evitar error de compilación si el miembro no está refreshado aún en intellisense mental
+      QPushButton *btn = findChild<QPushButton *>("helpLoginButton");
+      if(btn) connect(btn, &QPushButton::clicked, this, &MainWindow::onShowLoginHelp);
+  } 
+
   // Limpiar error al escribir de nuevo
   connect(ui->nickEdit, &QLineEdit::textChanged, this,
           [this]() { ui->loginErrorLabel->clear(); });
@@ -529,6 +584,29 @@ void MainWindow::setupConnections() {
       if (var.isValid()) {
         avatar = var.value<QImage>();
       }
+    }
+
+    // Si no hay avatar seleccionado, generar uno aleatorio con emoji
+    if (avatar.isNull()) {
+        // Usar códigos UCS4 para evitar problemas de codificación
+        QList<uint> emojiCodes = {
+            0x1F436, 0x1F431, 0x1F98A, 0x1F43B, 0x1F43C, 0x1F428, 0x1F42F, 0x1F981, 
+            0x1F42E, 0x1F437, 0x1F438, 0x1F419, 0x1F984, 0x1F414, 0x1F427, 0x1F989, 
+            0x2693, 0x26F5, 0x1F6A4, 0x1F6F3, 0x26F4, 0x1F6A2, 0x1F480
+        };
+
+        uint code = emojiCodes.at(QRandomGenerator::global()->bounded(static_cast<quint32>(emojiCodes.size())));
+        QString emoji = QString::fromUcs4(&code, 1);
+        
+        QImage randomAvatar(120, 150, QImage::Format_ARGB32);
+        randomAvatar.fill(QColor("#333333"));
+        QPainter p(&randomAvatar);
+        QFont f("Segoe UI Emoji", 60);
+        p.setFont(f);
+        p.setPen(Qt::white);
+        p.drawText(randomAvatar.rect(), Qt::AlignCenter, emoji);
+        p.end();
+        avatar = randomAvatar;
     }
 
     m_registerController->registerUser(nick, email, password, birthdate,
@@ -620,22 +698,38 @@ void MainWindow::setupConnections() {
     });
   }
 
-  // === Password Visibility Toggles ===
+  // === Password Visibility Toggles - Using White Icons ===
+  // Helper to create white icons on the fly since we don't have white assets
+  auto createWhiteIconLambda = [](const QString &iconPath) -> QIcon {
+      QPixmap pixmap(iconPath);
+      if (pixmap.isNull()) return QIcon(iconPath);
+      QImage img = pixmap.toImage();
+      for (int y = 0; y < img.height(); ++y) {
+          for (int x = 0; x < img.width(); ++x) {
+              QColor color = img.pixelColor(x, y);
+              if (color.alpha() > 0) {
+                  img.setPixelColor(x, y, QColor(255, 255, 255, color.alpha()));
+              }
+          }
+      }
+      return QIcon(QPixmap::fromImage(img));
+  };
+
   // Login password toggle
   QAction *toggleLoginPass = ui->passwordEdit->addAction(
-      QIcon(":/resources/icons/eye_closed.svg"), QLineEdit::TrailingPosition);
+      createWhiteIconLambda(":/resources/icons/eye_closed.svg"), QLineEdit::TrailingPosition);
   connect(toggleLoginPass, &QAction::triggered, this,
           &MainWindow::toggleLoginPasswordVisibility);
 
   // Register password toggle
   QAction *toggleRegPass = ui->registerPasswordEdit->addAction(
-      QIcon(":/resources/icons/eye_closed.svg"), QLineEdit::TrailingPosition);
+      createWhiteIconLambda(":/resources/icons/eye_closed.svg"), QLineEdit::TrailingPosition);
   connect(toggleRegPass, &QAction::triggered, this,
           &MainWindow::toggleRegisterPasswordVisibility);
 
   // Register confirm password toggle
   QAction *toggleConfPass = ui->registerConfirmPasswordEdit->addAction(
-      QIcon(":/resources/icons/eye_closed.svg"), QLineEdit::TrailingPosition);
+      createWhiteIconLambda(":/resources/icons/eye_closed.svg"), QLineEdit::TrailingPosition);
   connect(toggleConfPass, &QAction::triggered, this,
           &MainWindow::toggleRegisterConfirmPasswordVisibility);
 }
@@ -862,6 +956,11 @@ void MainWindow::onToolChanged(int toolMode) {
   case ToolMode::Ruler:
     toolName = "Regla";
     break;
+  case ToolMode::RulerDraw:
+    toolName = "Regla (Trazo)";
+    anchor = m_toolGroup->button(static_cast<int>(ToolMode::RulerDraw)); // Encontrar el botón dinámico
+    isDrawingTool = true;
+    break;
   default:
     toolName = "Selecciona";
     break;
@@ -935,27 +1034,64 @@ void MainWindow::onShowProfile() {
 void MainWindow::onShowManual() {
   // Abrir manual de ayuda
   QMessageBox::information(
-      this, "Manual de Uso",
-      "<h3>Carta Náutica Digital</h3>"
-      "<p><b>Navegación:</b></p>"
+      this, "Manual de Uso (F1)",
+      "<h3>Carta Náutica Digital - Manual de Usuario</h3>"
+      "<p>Bienvenido a la aplicación de prácticas para Patrón de Embarcación de Recreo.</p>"
+      
+      "<h4>🕹️ Modos de Navegación</h4>"
       "<ul>"
-      "<li>✋ <b>Mano:</b> Arrastra para mover la carta</li>"
-      "<li>🔍 <b>Zoom:</b> Usa la rueda del ratón o los botones +/-</li>"
+      "<li><b>✋ Moverse (Pan):</b> Mantén presionado el clic izquierdo y arrastra para desplazar la carta.</li>"
+      "<li><b>↖ Seleccionar:</b> Haz clic en 'Seleccionar' en el menú de la mano para editar o borrar elementos (líneas, textos).</li>"
+      "<li><b>🔍 Zoom:</b> Usa la rueda del ratón, o los botones +/- de la barra lateral.</li>"
       "</ul>"
-      "<p><b>Dibujo:</b></p>"
+      
+      "<h4>✏️ Herramientas de Dibujo</h4>"
       "<ul>"
-      "<li>📍 <b>Punto:</b> Click para marcar posiciones</li>"
-      "<li>📐 <b>Línea:</b> Arrastra para trazar rumbos</li>"
-      "<li>◠ <b>Arco:</b> Arrastra desde el centro para crear arcos</li>"
-      "<li>T <b>Texto:</b> Click para añadir anotaciones</li>"
-      "<li>🧽 <b>Borrador:</b> Click sobre un elemento para eliminarlo</li>"
+      "<li><b>📍 Punto:</b> Haz clic en el mapa para marcar una posición (ej. Faro, Puerto).</li>"
+      "<li><b>📐 Línea:</b> Haz clic y arrastra para trazar rumbos o distancias.</li>"
+      "<li><b>◠ Arco:</b> Haz clic (centro) y arrastra para dibujar un arco de compás.</li>"
+      "<li><b>T Texto:</b> Haz clic para añadir notas.</li>"
+      "<li><b>🧽 Borrador:</b> Haz clic sobre cualquier elemento para eliminarlo.</li>"
       "</ul>"
-      "<p><b>Medición:</b></p>"
+      
+      "<h4>📏 Medición</h4>"
       "<ul>"
-      "<li>🧭 <b>Transportador:</b> Arrastra para mover, rueda para rotar</li>"
-      "<li>📏 <b>Regla:</b> Arrastra para medir distancias</li>"
+      "<li><b>📏 Regla:</b> Mide distancias en Millas Náuticas.</li>"
+      "<li><b>🧭 Transportador:</b> Mide ángulos y rumbos. Arrastra para colocar, usa la rueda o los controles para rotar.</li>"
       "</ul>"
-      "<p><b>Atajos:</b> Ctrl+Z (Deshacer), +/- (Zoom), Esc (Cancelar)</p>");
+      
+      "<h4>⚙️ Opciones Adicionales</h4>"
+      "<ul>"
+      "<li><b>Deshacer (Ctrl+Z):</b> Revierte la última acción de dibujo.</li>"
+      "<li><b>Limpiar:</b> Borra todos los elementos de la carta.</li>"
+      "<li><b>Quiz:</b> Accede al modo de evaluación con preguntas tipo test.</li>"
+      "</ul>"
+      
+      "<p><i>Pulsa F1 en cualquier momento para volver a ver esta ayuda.</i></p>");
+}
+
+void MainWindow::onShowLoginHelp() {
+    QMessageBox::information(this, "Acerca de Patrón Digital",
+        "<h3>Bienvenido a Patrón Digital</h3>"
+        "<p>Una herramienta profesional para la preparación del título de "
+        "<strong>Patrón de Embarcación de Recreo (PER)</strong>.</p>"
+        "<hr>"
+        "<p><strong>Características Principales:</strong></p>"
+        "<ul>"
+        "<li><b>Carta Náutica Interactiva:</b> Practica sobre el Estrecho de Gibraltar.</li>"
+        "<li><b>Herramientas de Trazado:</b> Simula el uso de regla, compás y transportador.</li>"
+        "<li><b>Evaluación Continua:</b> Realiza test y guarda tu progreso.</li>"
+        "</ul>"
+        "<p>Regístrate o inicia sesión para comenzar a navegar.</p>"
+    );
+}
+
+void MainWindow::keyPressEvent(QKeyEvent *event) {
+    if (event->key() == Qt::Key_F1) {
+        onShowManual();
+    } else {
+        QMainWindow::keyPressEvent(event);
+    }
 }
 
 void MainWindow::onAbout() {
@@ -1045,10 +1181,9 @@ void MainWindow::onSelectionChanged() {
     m_strokePopup->setPointMode(isPoint);
     m_strokePopup->blockSignals(false);
 
-    // Mostrar popup cerca del mouse
-    QPoint globalPos = QCursor::pos();
-    m_strokePopup->move(globalPos + QPoint(20, 20));
-    m_strokePopup->show();
+    // Mostrar popup en la misma posición que cuando se seleccionan herramientas
+    // Usamos el toolbarScrollArea como ancla genérica
+    showStrokeSettings(ui->toolbarScrollArea);
     m_strokePopup->raise();
   }
 }
@@ -1059,12 +1194,30 @@ void MainWindow::toggleLoginPasswordVisibility() {
   QList<QAction *> actions = ui->passwordEdit->actions();
   if (!actions.isEmpty()) {
     QAction *toggleAction = actions.last();
+    // Re-create lambda for simplicity or make it a member function. 
+    // Since we didn't add the member function to header yet, let's duplicate the logic briefly or cleaner:
+    // Let's assume we want to use the white icon logic.
+        auto createWhiteIconLambda = [](const QString &iconPath) -> QIcon {
+        QPixmap pixmap(iconPath);
+        if (pixmap.isNull()) return QIcon(iconPath);
+        QImage img = pixmap.toImage();
+        for (int y = 0; y < img.height(); ++y) {
+            for (int x = 0; x < img.width(); ++x) {
+                QColor color = img.pixelColor(x, y);
+                if (color.alpha() > 0) {
+                    img.setPixelColor(x, y, QColor(255, 255, 255, color.alpha()));
+                }
+            }
+        }
+        return QIcon(QPixmap::fromImage(img));
+    };
+
     if (ui->passwordEdit->echoMode() == QLineEdit::Password) {
       ui->passwordEdit->setEchoMode(QLineEdit::Normal);
-      toggleAction->setIcon(QIcon(":/resources/icons/eye.svg"));
+      toggleAction->setIcon(createWhiteIconLambda(":/resources/icons/eye.svg"));
     } else {
       ui->passwordEdit->setEchoMode(QLineEdit::Password);
-      toggleAction->setIcon(QIcon(":/resources/icons/eye_closed.svg"));
+      toggleAction->setIcon(createWhiteIconLambda(":/resources/icons/eye_closed.svg"));
     }
   }
 }
@@ -1073,12 +1226,27 @@ void MainWindow::toggleRegisterPasswordVisibility() {
   QList<QAction *> actions = ui->registerPasswordEdit->actions();
   if (!actions.isEmpty()) {
     QAction *toggleAction = actions.last();
+    auto createWhiteIconLambda = [](const QString &iconPath) -> QIcon {
+        QPixmap pixmap(iconPath);
+        if (pixmap.isNull()) return QIcon(iconPath);
+        QImage img = pixmap.toImage();
+        for (int y = 0; y < img.height(); ++y) {
+            for (int x = 0; x < img.width(); ++x) {
+                QColor color = img.pixelColor(x, y);
+                if (color.alpha() > 0) {
+                    img.setPixelColor(x, y, QColor(255, 255, 255, color.alpha()));
+                }
+            }
+        }
+        return QIcon(QPixmap::fromImage(img));
+    };
+
     if (ui->registerPasswordEdit->echoMode() == QLineEdit::Password) {
       ui->registerPasswordEdit->setEchoMode(QLineEdit::Normal);
-      toggleAction->setIcon(QIcon(":/resources/icons/eye.svg"));
+      toggleAction->setIcon(createWhiteIconLambda(":/resources/icons/eye.svg"));
     } else {
       ui->registerPasswordEdit->setEchoMode(QLineEdit::Password);
-      toggleAction->setIcon(QIcon(":/resources/icons/eye_closed.svg"));
+      toggleAction->setIcon(createWhiteIconLambda(":/resources/icons/eye_closed.svg"));
     }
   }
 }
@@ -1087,12 +1255,27 @@ void MainWindow::toggleRegisterConfirmPasswordVisibility() {
   QList<QAction *> actions = ui->registerConfirmPasswordEdit->actions();
   if (!actions.isEmpty()) {
     QAction *toggleAction = actions.last();
+    auto createWhiteIconLambda = [](const QString &iconPath) -> QIcon {
+        QPixmap pixmap(iconPath);
+        if (pixmap.isNull()) return QIcon(iconPath);
+        QImage img = pixmap.toImage();
+        for (int y = 0; y < img.height(); ++y) {
+            for (int x = 0; x < img.width(); ++x) {
+                QColor color = img.pixelColor(x, y);
+                if (color.alpha() > 0) {
+                    img.setPixelColor(x, y, QColor(255, 255, 255, color.alpha()));
+                }
+            }
+        }
+        return QIcon(QPixmap::fromImage(img));
+    };
+
     if (ui->registerConfirmPasswordEdit->echoMode() == QLineEdit::Password) {
       ui->registerConfirmPasswordEdit->setEchoMode(QLineEdit::Normal);
-      toggleAction->setIcon(QIcon(":/resources/icons/eye.svg"));
+      toggleAction->setIcon(createWhiteIconLambda(":/resources/icons/eye.svg"));
     } else {
       ui->registerConfirmPasswordEdit->setEchoMode(QLineEdit::Password);
-      toggleAction->setIcon(QIcon(":/resources/icons/eye_closed.svg"));
+      toggleAction->setIcon(createWhiteIconLambda(":/resources/icons/eye_closed.svg"));
     }
   }
 }

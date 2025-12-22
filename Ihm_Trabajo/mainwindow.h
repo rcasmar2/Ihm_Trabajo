@@ -39,12 +39,16 @@ public:
   MainWindow(QWidget *parent = nullptr);
   ~MainWindow();
 
+protected:
+  void keyPressEvent(QKeyEvent *event) override;
+
 private slots:
   // Login
   void onLoginClicked();
   void onLoginSuccessful(User *user);
   void onLoginFailed(const QString &reason);
   void onShowRegister();
+  void onShowLoginHelp();
 
   // Register
   void onRegisterClicked();

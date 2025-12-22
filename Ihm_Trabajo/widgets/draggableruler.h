@@ -55,6 +55,9 @@ public:
     void notifyDrawSegment(const QPointF &start, const QPointF &end);
     void notifyPreviewSegment(const QPointF &start, const QPointF &end);
     
+    // Configurar si permite dibujo (marcador visible/activo)
+    void setDrawingEnabled(bool enabled);
+
     QRectF getRulerBoundingRect() const { return boundingRect(); }
 
 signals:

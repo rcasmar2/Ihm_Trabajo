@@ -95,8 +95,9 @@ void ChartWidget::mousePressEvent(QMouseEvent *event) {
     ToolMode tool = m_controller->currentTool();
     
     // Para herramientas overlay (Transportador/Regla/Línea/Compás)
+    // Para herramientas overlay (Transportador/Regla/Línea/Compás/ReglaDraw)
     if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || 
-        tool == ToolMode::Line || tool == ToolMode::Arc) {
+        tool == ToolMode::Line || tool == ToolMode::Arc || tool == ToolMode::RulerDraw) {
         
         // Verificar si el click está sobre la herramienta overlay
         QGraphicsItem *item = itemAt(event->pos());
@@ -153,7 +154,7 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
     
     // Para herramientas overlay: si estamos panning, hacer pan; si no, delegar
     if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || 
-        tool == ToolMode::Line || tool == ToolMode::Arc) {
+        tool == ToolMode::Line || tool == ToolMode::Arc || tool == ToolMode::RulerDraw) {
         if (m_isPanning) {
             // Hacer pan aunque haya herramienta overlay
             QPoint delta = event->pos() - m_lastPanPoint;
@@ -193,7 +194,7 @@ void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
     
     // Para herramientas overlay, dejar que los items manejen el release
     if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || 
-        tool == ToolMode::Line || tool == ToolMode::Arc) {
+        tool == ToolMode::Line || tool == ToolMode::Arc || tool == ToolMode::RulerDraw) {
         QGraphicsView::mouseReleaseEvent(event);
         return;
     }
@@ -208,7 +209,8 @@ void ChartWidget::wheelEvent(QWheelEvent *event) {
     
     // Ctrl + Rueda = rotar herramienta (transportador/regla/línea)
     if (event->modifiers() & Qt::ControlModifier) {
-        if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || tool == ToolMode::Line) {
+        if (tool == ToolMode::Protractor || tool == ToolMode::Ruler || 
+            tool == ToolMode::Line || tool == ToolMode::RulerDraw) {
             m_controller->handleWheelDelta(event->angleDelta().y());
             event->accept();
             return;
@@ -359,7 +361,7 @@ void ChartWidget::setupToolIndicator() {
     propsWidget->setObjectName("propsWidget");
     propsWidget->setStyleSheet("background: transparent;");
     QHBoxLayout *propsLayout = new QHBoxLayout(propsWidget);
-    propsLayout->setContentsMargins(0, 0, 0, 0);
+    propsLayout->setContentsMargins(0, 0, 20, 0); // Changed right margin to 20
     propsLayout->setSpacing(10);
     
     // Separador
@@ -386,7 +388,6 @@ void ChartWidget::setupToolIndicator() {
     m_helpButton->setFixedSize(24, 24);
     m_helpButton->setCursor(Qt::PointingHandCursor);
     m_helpButton->setIcon(QIcon(":/resources/icons/info_icon.svg"));
-    m_helpButton->setIconSize(QSize(20, 20));
     m_helpButton->setStyleSheet(R"(
         QPushButton {
             background: transparent;
