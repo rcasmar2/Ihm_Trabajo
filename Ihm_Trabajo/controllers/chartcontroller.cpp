@@ -77,10 +77,10 @@ void ChartController::setTool(ToolMode mode) {
     // Si cambiamos de Ruler -> RulerDraw o viceversa, no entra en el bloque principal if (m_currentTool != mode)
     // porque ambos son modos diferentes, PERO sí queremos reusar la regla y actualizar el estado de dibujo.
     
-    // Si ya tenemos regla y cambiamos entre modos de regla:
-    if (m_ruler && (mode == ToolMode::Ruler || mode == ToolMode::RulerDraw) &&
-                   (m_currentTool == ToolMode::Ruler || m_currentTool == ToolMode::RulerDraw)) {
-        m_ruler->setDrawingEnabled(mode == ToolMode::RulerDraw);
+    // Si ya tenemos regla y cambiamos entre modos de regla (Ruler, Line, RulerDraw):
+    if (m_ruler && (mode == ToolMode::Ruler || mode == ToolMode::RulerDraw || mode == ToolMode::Line) &&
+                   (m_currentTool == ToolMode::Ruler || m_currentTool == ToolMode::RulerDraw || m_currentTool == ToolMode::Line)) {
+        m_ruler->setDrawingEnabled(mode == ToolMode::RulerDraw || mode == ToolMode::Line);
         m_currentTool = mode;
         emit toolChanged(mode);
         return;
@@ -107,9 +107,8 @@ void ChartController::setTool(ToolMode mode) {
             
             // Configurar si se permite dibujar con la regla (el marcador rojo)
             if (m_ruler) {
-                // Solo permitir dibujar si es RulerDraw. 
-                // Line mode usa su propio ghost line, no el de la regla (aunque visualmente se parecen)
-                m_ruler->setDrawingEnabled(mode == ToolMode::RulerDraw);
+                // Permitir dibujar si es RulerDraw o Line
+                m_ruler->setDrawingEnabled(mode == ToolMode::RulerDraw || mode == ToolMode::Line);
             }
 
             showProtractor(false);

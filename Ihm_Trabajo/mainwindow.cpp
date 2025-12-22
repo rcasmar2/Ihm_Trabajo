@@ -294,28 +294,7 @@ void MainWindow::setupToolbar() {
   setupToolButton(ui->toolText, ":/resources/icons/text.svg");
   setupToolButton(ui->toolEraser, ":/resources/icons/eraser.svg");
 
-  // Botón Regla para DIBUJO (RulerDraw)
-  // Lo añadimos programáticamente ya que no está en el .ui
-  QPushButton *btnRulerDraw = new QPushButton(this);
-  btnRulerDraw->setFixedSize(60, 50); // Unificar tamaño
-  setupToolButton(btnRulerDraw, ":/resources/icons/rule_icon_bar.svg"); // Mismo icono de regla
-  btnRulerDraw->setToolTip("Regla de Trazado (Dibuja líneas)");
-  btnRulerDraw->setCheckable(true);
-  
-  if (auto layout = ui->centralwidget->findChild<QVBoxLayout *>("toolbarVLayout")) {
-      // Insertar en la sección de dibujo (antes del eraser o después)
-      // toolEraser está en el layout.
-      int eraserIndex = layout->indexOf(ui->toolEraser);
-      layout->insertWidget(eraserIndex, btnRulerDraw); 
-  }
-  
-  m_toolGroup->addButton(btnRulerDraw, static_cast<int>(ToolMode::RulerDraw));
-  
-  connect(btnRulerDraw, &QPushButton::clicked, this, [this]() {
-         m_chartWidget->controller()->setTool(ToolMode::RulerDraw);
-         // Mostrar popup de opciones si es necesario (es tool de dibujo)
-         showStrokeSettings(qobject_cast<QWidget*>(sender()));
-  });
+
 
   // === Botón Herramientas de Medición (Combo) ===
   QToolButton *btnMeasure = new QToolButton(this);
