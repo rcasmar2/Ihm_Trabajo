@@ -176,16 +176,6 @@
                 <property name="alignment"><set>Qt::AlignCenter</set></property>
                </widget>
              </item>
-             <item>
-               <widget class="QPushButton" name="changeAvatarButton">
-                <property name="text"><string>Cambiar Foto</string></property>
-                <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
-                <property name="flat"><bool>true</bool></property>
-                <property name="styleSheet">
-                 <string>color: #3498db; font-weight: bold; font-size: 12px; border: none; margin-top: 5px;</string>
-                </property>
-               </widget>
-             </item>
            </layout>
           </item>
           <item>

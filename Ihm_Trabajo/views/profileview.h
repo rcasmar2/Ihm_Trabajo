@@ -20,6 +20,9 @@ public:
     void setController(ProfileController *controller);
     void loadUser(const User *user);
 
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override;
+
 signals:
     void backRequested();
 
