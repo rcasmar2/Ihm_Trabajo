@@ -41,7 +41,7 @@ QLineEdit, QDateEdit, QSpinBox, QComboBox {
     border: 1px solid #444444;
     border-radius: 8px;
     padding: 10px;
-    font-size: 13px;
+    font-size: 14px;
     text-decoration: none;
 }
 
