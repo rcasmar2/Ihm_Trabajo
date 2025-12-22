@@ -6,6 +6,8 @@
 #include <QFileDialog>
 #include <QIcon>
 #include <QMessageBox>
+#include <QPainter>
+#include <QPainterPath>
 
 ProfileView::ProfileView(QWidget *parent)
     : QWidget(parent), ui(new Ui::ProfileView) {
@@ -109,6 +111,33 @@ void ProfileView::togglePasswordVisibility() {
 
 void ProfileView::setupValidation() {
   // Implement real-time validation visual feedback here if needed
+}
+
+QPixmap ProfileView::createCircularPixmap(const QImage &image, int size) {
+  // Create a square pixmap with the image
+  QPixmap source = QPixmap::fromImage(image).scaled(
+      size, size, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+
+  // Create a target pixmap with transparency
+  QPixmap target(size, size);
+  target.fill(Qt::transparent);
+
+  // Create a painter and set up for circular clipping
+  QPainter painter(&target);
+  painter.setRenderHint(QPainter::Antialiasing);
+  painter.setRenderHint(QPainter::SmoothPixmapTransform);
+
+  // Create circular clip path
+  QPainterPath path;
+  path.addEllipse(0, 0, size, size);
+  painter.setClipPath(path);
+
+  // Draw the image centered within the circular clip
+  int x = (size - source.width()) / 2;
+  int y = (size - source.height()) / 2;
+  painter.drawPixmap(x, y, source);
+
+  return target;
 }
 
 bool ProfileView::eventFilter(QObject *obj, QEvent *event) {

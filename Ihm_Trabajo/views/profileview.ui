@@ -170,7 +170,7 @@
                 <property name="minimumSize"><size><width>100</width><height>100</height></size></property>
                 <property name="maximumSize"><size><width>100</width><height>100</height></size></property>
                 <property name="styleSheet">
-                 <string>background-color: #333; border-radius: 50px; border: 2px solid #e94560;</string>
+                 <string>background-color: #333; border-radius: 8px;</string>
                 </property>
                 <property name="text"><string></string></property>
                 <property name="alignment"><set>Qt::AlignCenter</set></property>
