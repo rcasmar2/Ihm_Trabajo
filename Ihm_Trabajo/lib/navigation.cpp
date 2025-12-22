@@ -1,92 +1,95 @@
 #include "navigation.h"
+#include <QCoreApplication>
+#include <QDir>
 
 Navigation::Navigation()
-    : m_dao("navdb.sqlite")
-{
-    loadFromDb();
+    : m_dao(QDir(QCoreApplication::applicationDirPath())
+                .filePath("navdb.sqlite")) {
+  loadFromDb();
 }
 
-Navigation& Navigation::instance() {
-    static Navigation nav;
-    return nav;
+Navigation &Navigation::instance() {
+  static Navigation nav;
+  return nav;
 }
 
-User* Navigation::findUser(const QString &nick) {
-    auto it = m_users.find(nick);
-    if (it != m_users.end()) {
-        return &it.value();
-    }
-    return nullptr;
+User *Navigation::findUser(const QString &nick) {
+  auto it = m_users.find(nick);
+  if (it != m_users.end()) {
+    return &it.value();
+  }
+  return nullptr;
 }
 
-const User* Navigation::findUser(const QString &nick) const {
-    auto it = m_users.find(nick);
-    if (it != m_users.end()) {
-        return &it.value();
-    }
-    return nullptr;
+const User *Navigation::findUser(const QString &nick) const {
+  auto it = m_users.find(nick);
+  if (it != m_users.end()) {
+    return &it.value();
+  }
+  return nullptr;
 }
 
-User* Navigation::authenticate(const QString &nick, const QString &password) {
-    User *user = findUser(nick);
-    if (user && user->password() == password) {
-        return user;
-    }
-    return nullptr;
+User *Navigation::authenticate(const QString &nick, const QString &password) {
+  User *user = findUser(nick);
+  if (user && user->password() == password) {
+    return user;
+  }
+  return nullptr;
 }
 
 void Navigation::addUser(User &user) {
-    m_dao.saveUser(user);
-    user.setInsertedInDb(true);
-    m_users.insert(user.nickName(), user);
+  m_dao.saveUser(user);
+  user.setInsertedInDb(true);
+  m_users.insert(user.nickName(), user);
 }
 
 void Navigation::updateUser(const User &user) {
-    m_dao.updateUser(user);
-    m_users[user.nickName()] = user;
+  m_dao.updateUser(user);
+  m_users[user.nickName()] = user;
 }
 
 void Navigation::removeUser(const QString &nickName) {
-    m_dao.deleteUser(nickName);
-    m_users.remove(nickName);
+  m_dao.deleteUser(nickName);
+  m_users.remove(nickName);
 }
 
 void Navigation::addSession(const QString &nickName, const Session &session) {
-    m_dao.addSession(nickName, session);
-    
-    User *user = findUser(nickName);
-    if (user) {
-        user->addSession(session);
-    }
+  m_dao.addSession(nickName, session);
+
+  User *user = findUser(nickName);
+  if (user) {
+    user->addSession(session);
+  }
 }
 
 void Navigation::addProblem(const Problem &problem) {
-    m_dao.addProblem(problem);
-    // Agregarlo a la lista en memoria también o recargar?
-    // Mejor agregar para evitar reload
-    m_problems.append(problem);
+  m_dao.addProblem(problem);
+  // Agregarlo a la lista en memoria también o recargar?
+  // Mejor agregar para evitar reload
+  m_problems.append(problem);
 }
 
 void Navigation::reload() {
-    m_users.clear();
-    m_problems.clear();
-    loadFromDb();
+  m_users.clear();
+  m_problems.clear();
+  loadFromDb();
 }
 
 void Navigation::loadFromDb() {
-    m_users = m_dao.loadUsers();
+  m_users = m_dao.loadUsers();
+  m_problems = m_dao.loadProblems();
+
+  // Si no hay problemas, cargar desde JSON embebido en recursos (siempre
+  // disponible)
+  if (m_problems.isEmpty()) {
+    m_dao.importProblemsFromJson(":/problems.json");
+    // Recargar desde DB para tener los IDs correctos si importamos
     m_problems = m_dao.loadProblems();
-    
-    // Si no hay problemas, cargar desde JSON embebido en recursos (siempre disponible)
-    if (m_problems.isEmpty()) {
-        m_dao.importProblemsFromJson(":/problems.json"); 
-        // Recargar desde DB para tener los IDs correctos si importamos
-        m_problems = m_dao.loadProblems();
-    }
-    
-    // Cargar sesiones para cada usuario
-    for (auto it = m_users.begin(); it != m_users.end(); ++it) {
-        QVector<Session> sessions = m_dao.loadSessionsFor(it.key());
-        it.value().setSessions(sessions);
-    }
+  }
+
+  // Cargar sesiones para cada usuario
+  for (auto it = m_users.begin(); it != m_users.end(); ++it) {
+    QVector<Session> sessions = m_dao.loadSessionsFor(it.key());
+    it.value().setSessions(sessions);
+  }
 }

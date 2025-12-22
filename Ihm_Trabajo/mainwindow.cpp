@@ -382,8 +382,6 @@ void MainWindow::setupToolbar() {
         QPushButton:hover { background-color: #f1c40f; }
     )");
 
-  connect(ui->toolQuiz, &QPushButton::clicked, this, &MainWindow::onStartQuiz);
-
   // Crear popup de configuración de trazo
   m_strokePopup = new StrokeSettingsPopup(this);
   m_strokePopup->setColor(m_chartWidget->controller()->strokeColor());
